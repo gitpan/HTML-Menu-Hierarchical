@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 21:34:34
 # Authors: Don
 # Change log:
-# $Id: ItemInfo.pm,v 1.23 2003/05/06 15:30:09 don Exp $
+# $Id: ItemInfo.pm,v 1.24 2003/09/21 05:05:20 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -40,7 +40,7 @@ use Carp;
 {   package HTML::Menu::Hierarchical::ItemInfo;
 
     use vars qw($VERSION $AUTOLOAD);
-    $VERSION = do { my @r=(q$Revision: 1.23 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
+    $VERSION = do { my @r=(q$Revision: 1.24 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
     
     sub new {
         my ($proto, $item, $selected_path, $key, $parent, $params) = @_;
@@ -301,6 +301,30 @@ use Carp;
         }
     }
     *is_last_displayed = \&isLastDisplayed;
+
+=pod
+
+=head2 isLastSiblingDisplayed()
+
+ Returns true if the current menu item is the last of its
+ siblings to be displayed, false otherwise.
+
+=cut
+    sub isLastSiblingDisplayed {
+        my ($self) = @_;
+        my $my_level = $self->getLevel;
+        my $item = $self;
+
+        while (1) {
+            $item = $item->getNextItem;
+            return 1 unless $item;
+            my $level = $item->getLevel;
+            return 1 if $level < $my_level;
+            return undef if $level == $my_level;
+        }
+        
+        return undef;
+    }
 
 =pod
 
@@ -750,6 +774,6 @@ __END__
 
 =head1 VERSION
 
- $Id: ItemInfo.pm,v 1.23 2003/05/06 15:30:09 don Exp $
+ $Id: ItemInfo.pm,v 1.24 2003/09/21 05:05:20 don Exp $
 
 =cut

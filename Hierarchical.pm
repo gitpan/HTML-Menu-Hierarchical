@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 20:35:53
 # Authors: Don
 # Change log:
-# $Id: Hierarchical.pm,v 1.34 2003/05/06 15:33:00 don Exp $
+# $Id: Hierarchical.pm,v 1.36 2003/09/21 05:05:20 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -168,7 +168,7 @@ use Carp;
 
     use vars qw($VERSION);
     BEGIN {
-        $VERSION = '0.10'; # update below in POD as well
+        $VERSION = '0.11'; # update below in POD as well
     }
 
     use HTML::Menu::Hierarchical::Item;
@@ -199,7 +199,7 @@ use Carp;
         my $list = $$self{_open_list}{$key};
         return $list if $list;
 
-        my $list = $self->generateOpenList($key);
+        $list = $self->generateOpenList($key);
         $list = [] unless $list;
         $$self{_open_list}{$key} = $list;
 
@@ -266,11 +266,18 @@ use Carp;
 =cut
     sub getSelectedItem {
         my ($self, $key) = @_;
-        my $open_list = $self->_getOpenList($key);
-        if (@$open_list) {
-            return $$open_list[0]->getSelectedItem();
-        }
+        my $path = $self->findSelectedPath($self->getConfig, $key);
+        return undef unless $path;
+        return pop(@$path);
     }
+
+#     sub getSelectedItem {
+#         my ($self, $key) = @_;
+#         my $open_list = $self->_getOpenList($key);
+#         if (@$open_list) {
+#             return $$open_list[0]->getSelectedItem();
+#         }
+#     }
 
 =pod
 
@@ -480,13 +487,6 @@ use Carp;
         return undef;
     }
 
-    sub getSelectedItem {
-        my ($self, $key) = @_;
-        my $path = $self->findSelectedPath($self->getConfig, $key);
-        return undef unless $path;
-        return pop(@$path);
-    }
-
     sub _convertConfig {
         my ($self, $conf) = @_;
         
@@ -616,18 +616,6 @@ sub menu_callback {
 
 =back
 
-=head1 TODO
-
-=over 4
-
-=item Last sibling
-
-Provide a way to tell if the current menu item is the last of its
-siblings to be displayed.
-
-=back
-
-
 =head1 BUGS
 
  Please send bug reports/feature requests to don@owensnet.com.
@@ -649,6 +637,6 @@ siblings to be displayed.
 
 =head1 VERSION
 
- 0.10
+ 0.11
 
 =cut
