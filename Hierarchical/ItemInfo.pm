@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 21:34:34
 # Authors: Don
 # Change log:
-# $Id: ItemInfo.pm,v 1.21 2003/04/20 21:18:39 don Exp $
+# $Id: ItemInfo.pm,v 1.22 2003/04/27 01:25:20 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -40,13 +40,13 @@ use Carp;
 {   package HTML::Menu::Hierarchical::ItemInfo;
 
     use vars qw($VERSION $AUTOLOAD);
-    $VERSION = do { my @r=(q$Revision: 1.21 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
+    $VERSION = do { my @r=(q$Revision: 1.22 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
     
     sub new {
         my ($proto, $item, $selected_path, $key, $parent, $params) = @_;
         my $self = bless {}, ref($proto) || $proto;
         $self->setItem($item);
-        $self->setSelectedPath($selected_path);
+        $self->_setSelectedPath($selected_path);
         $self->setKey($key);
         $self->setParent($parent);
         $self->_setParams($params);
@@ -95,7 +95,7 @@ use Carp;
 =cut
     sub isInSelectedPath {
         my ($self) = @_;
-        my $selected_path = $self->getSelectedPath;
+        my $selected_path = $self->_getSelectedPath;
         my $my_item = $self->getItem;
 
         foreach my $item (@$selected_path) {
@@ -115,7 +115,7 @@ use Carp;
 =cut
     sub getSelectedItem {
         my ($self) = @_;
-        my $selected_path = $self->getSelectedPath;
+        my $selected_path = $self->_getSelectedPath;
         return $self->new($$selected_path[$#$selected_path], $selected_path, $self->getKey);
     }
     *get_selected_item = \&getSelectedItem;
@@ -130,7 +130,7 @@ use Carp;
 =cut
     sub getSelectedLevel {
         my ($self) = @_;
-        my $selected_path = $self->getSelectedPath;
+        my $selected_path = $self->_getSelectedPath;
         return $#$selected_path;
     }
     *get_selected_level = \&getSelectedLevel;
@@ -145,7 +145,7 @@ use Carp;
 =cut
     sub getMaxDisplayedLevel {
         my ($self) = @_;
-        my $selected_path = $self->getSelectedPath;
+        my $selected_path = $self->_getSelectedPath;
         my $max_level = $#$selected_path;
         if ($$selected_path[$max_level]->hasChildren) {
             $max_level++;
@@ -243,7 +243,7 @@ use Carp;
             return undef;
         }
         
-        my $selected_path = $self->getSelectedPath;
+        my $selected_path = $self->_getSelectedPath;
         my $name = $this_item->getName;
         
         foreach my $item (@$selected_path) {
@@ -426,12 +426,12 @@ use Carp;
         $$self{_level} = $level;
     }
 
-    sub getSelectedPath {
+    sub _getSelectedPath {
         my ($self) = @_;
         return $$self{_selected_path};
     }
 
-    sub setSelectedPath {
+    sub _setSelectedPath {
         my ($self, $path) = @_;
         $$self{_selected_path} = $path;
     }
@@ -747,6 +747,6 @@ __END__
 
 =head1 VERSION
 
- $Id: ItemInfo.pm,v 1.21 2003/04/20 21:18:39 don Exp $
+ $Id: ItemInfo.pm,v 1.22 2003/04/27 01:25:20 don Exp $
 
 =cut

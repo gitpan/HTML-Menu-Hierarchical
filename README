@@ -136,17 +136,23 @@ METHODS
   new()
         my $menu_obj = HTML::Menu::Hierarchical->new($conf, \&callback);
 
-  generateMenu()
+  generateMenu($menu_item)
      my $html = $menu_obj->generateMenu($menu_item);
 
      $menu_item is the 'name' parameter of the selected item,
      typically passed as a CGI parameter.
 
-  addChildConf()
-     $menu_obj->addChildConf($conf, $menu_item_name);
-
+  addChildConf($conf, $menu_item_name)
      Adds another configuration tree into the current configuration
      at the specified node (name of the menu item).
+
+  getSelectedItem($menu_item)
+     Returns the ItemInfo object corresponding to the selected menu
+     item.
+
+  getSelectedPath($menu_item)
+     Returns an array of InfoItem objects representing the from the
+     top level menu item to the selected menu item.
 
   There are also underscore_separated versions of these methods.
      E.g., unescapeHtml($html) becomes unescape_html($html)
@@ -202,7 +208,7 @@ COPYRIGHT
      itself.
 
 VERSION
-     0.08
+     0.09
 
 NAME
      HTML::Menu::Hierarchical::ItemInfo - Used by HTML::Menu::Hierarchical.
@@ -344,5 +350,5 @@ COPYRIGHT
      itself.
 
 VERSION
-     $Id: README,v 1.9 2003/04/20 21:19:09 don Exp $
+     $Id: README,v 1.10 2003/04/27 01:26:08 don Exp $
 

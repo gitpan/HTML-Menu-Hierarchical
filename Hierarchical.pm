@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 20:35:53
 # Authors: Don
 # Change log:
-# $Id: Hierarchical.pm,v 1.31 2003/04/20 21:13:44 don Exp $
+# $Id: Hierarchical.pm,v 1.32 2003/04/27 01:25:20 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -168,7 +168,7 @@ use Carp;
 
     use vars qw($VERSION);
     BEGIN {
-        $VERSION = 0.08; # update below in POD as well
+        $VERSION = 0.09; # update below in POD as well
     }
 
     use HTML::Menu::Hierarchical::Item;
@@ -186,16 +186,28 @@ use Carp;
 
     sub new {
         my ($proto, $menu_config, $iterator_sub, $params) = @_;
-        my $self = bless {}, ref($proto) || $proto;
+        my $self = bless { _open_list => {} }, ref($proto) || $proto;
         $self->setConfig($self->_convertConfig($menu_config));
         $self->setIterator($iterator_sub);
         $self->_setParams($params);
         return $self;
     }
 
+    # for version v0_09
+    sub _getOpenList {
+        my ($self, $key) = @_;
+        my $list = $$self{_open_list}{$key};
+        return $list if $list;
+
+        my $list = $self->generateOpenList($key);
+        $$self{_open_list}{$key} = $list;
+
+        return $list;
+    }
+
 =pod
 
-=head2 generateMenu()
+=head2 generateMenu($menu_item)
     
  my $html = $menu_obj->generateMenu($menu_item);
 
@@ -221,9 +233,7 @@ use Carp;
 
 =pod
 
-=head2 addChildConf()
-
- $menu_obj->addChildConf($conf, $menu_item_name);
+=head2 addChildConf($conf, $menu_item_name)
 
  Adds another configuration tree into the current configuration
  at the specified node (name of the menu item).
@@ -244,7 +254,46 @@ use Carp;
         return 1;
     }
     *add_child_conf = \&addChildConf;
-    
+
+=pod
+
+=head2 getSelectedItem($menu_item)
+
+ Returns the ItemInfo object corresponding to the selected menu
+ item.
+
+=cut
+    sub getSelectedItem {
+        my ($self, $key) = @_;
+        my $open_list = $self->_getOpenList($key);
+        if (@$open_list) {
+            return $$open_list[0]->getSelectedItem();
+        }
+    }
+
+=pod
+
+=head2 getSelectedPath($menu_item)
+
+ Returns an array of InfoItem objects representing the from the
+ top level menu item to the selected menu item.
+
+=cut
+    # added for v0_09
+    sub getSelectedPath {
+        my ($self, $key) = @_;
+        my $open_list = $self->_getOpenList($key);
+        return [] unless @$open_list;
+
+        # take the path of Item objects and from that map out the
+        # list of ItemInfo objects.
+        my $item_path = $$open_list[0]->_getSelectedPath;
+
+        my %open_map = map { ($_->getName, $_) } @$open_list;
+        my @selected_path = map { $open_map{$_->getName} } @$item_path;
+        return \@selected_path;
+    }
+
     sub generateOpenList {
         my ($self, $key) = @_;
         my $params = $self->_getParams;
@@ -505,6 +554,18 @@ use Carp;
         return undef;
     }
 
+    # added for v0_09
+    sub DESTROY {
+        my ($self) = @_;
+        my $list_hash = $$self{_open_list};
+        if ($list_hash) {
+            while (my ($key, $list) = each %$list_hash) {
+                $self->_cleanUpOpenlist($list);
+            }
+        }
+    }
+
+
 }
 
 1;
@@ -587,6 +648,6 @@ siblings to be displayed.
 
 =head1 VERSION
 
- 0.08
+ 0.09
 
 =cut
