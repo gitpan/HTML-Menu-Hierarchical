@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 20:35:53
 # Authors: Don
 # Change log:
-# $Id: Hierarchical.pm,v 1.23 2003/04/09 04:44:30 don Exp $
+# $Id: Hierarchical.pm,v 1.29 2003/04/12 06:37:41 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -18,7 +18,7 @@ HTML::Menu::Hierarchical - HTML Hierarchical Menu Generator
 
 =head1 SYNOPSIS
 
-    my $menu_obj = HTML::Menu::Hierarchical->new($conf, \&callback);
+    my $menu_obj = HTML::Menu::Hierarchical->new($conf, \&callback, $params);
     my $html = $menu_obj->generateMenu($menu_item);
 
     or
@@ -31,6 +31,27 @@ HTML::Menu::Hierarchical - HTML Hierarchical Menu Generator
 
     The $conf parameter is a navigation configuration data structure
     (described below).
+
+    The $params parameter is an optional hash reference
+    containing parameters pertaining to the menu as a whole.
+    Recognized parameters are:
+
+=head2 first_with_url
+
+    If this is set to a true value and you are using the 'url'
+    field in the info hash (see below) in the configuration to
+    specify the url for the menu item, then if a menu item is
+    chosen that does not have a url configured, the url for that
+    menu item will be changed to the url of the first child menu
+    item that has a url configured.  This works by looking at the
+    items first child, then at that child's first child, and so
+    on.  It does not look at the second child.
+
+=head2 open_all
+
+    This has the same effect as the open_all parameter in the
+    menu configuration structure mentioned below, except that it
+    affects the entire menu hierarchy.
 
 =head1 DESCRIPTION
 
@@ -125,7 +146,7 @@ use Carp;
 
     use vars qw($VERSION);
     BEGIN {
-        $VERSION = 0.06; # update below in POD as well
+        $VERSION = 0.07; # update below in POD as well
     }
 
     use HTML::Menu::Hierarchical::Item;
@@ -142,10 +163,11 @@ use Carp;
 =cut
 
     sub new {
-        my ($proto, $menu_config, $iterator_sub) = @_;
+        my ($proto, $menu_config, $iterator_sub, $params) = @_;
         my $self = bless {}, ref($proto) || $proto;
         $self->setConfig($self->_convertConfig($menu_config));
         $self->setIterator($iterator_sub);
+        $self->_setParams($params);
         return $self;
     }
 
@@ -203,7 +225,17 @@ use Carp;
     
     sub generateOpenList {
         my ($self, $key) = @_;
+        my $params = $self->_getParams;
 
+        $self->_fixupConf;
+        
+        if ($$params{first_with_url}) {
+            my $non_url_items = $self->_getNonUrlItems;
+            my $new_name = $$non_url_items{$key};
+            $key = $new_name unless $new_name eq '';
+        }
+
+        
         my $conf = $self->getConfig;
         return '' unless $conf;
 
@@ -243,8 +275,9 @@ use Carp;
         my $new_level = $level + 1;
         my $list = [];
 
-        my $info_obj =
-            HTML::Menu::Hierarchical::ItemInfo->new($item, $selected_path, $key, $parent);
+        my $params = { top_menu_obj => $self };
+        my $info_obj = HTML::Menu::Hierarchical::ItemInfo->new($item, $selected_path, $key,
+                                                               $parent, $params);
         
         $info_obj->setLevel($level);
         push @$list, $info_obj;
@@ -277,10 +310,86 @@ use Carp;
         return $str;
     }
 
+    # added for v0_07
+    sub _addToItemsWithoutUrl {
+        my ($self, $name, $new_url) = @_;
+        my $non_url_items = $self->_getNonUrlItems;
+        $$non_url_items{$name} = $new_url;
+    }
+    
+    # added for v0_07
+    sub _getNonUrlItems {
+        my ($self) = @_;
+        my $items = $$self{_non_url_items};
+        unless ($items) {
+            $items = {};
+            $$self{_non_url_items} = $items;
+        }
+        return $items;
+    }
+
+    # added for v0_07
+    sub _checkFirstUrl {
+        my ($self, $item) = @_;
+        my $info = $item->getInfo;
+        return undef unless $$info{url} eq '';
+
+        my ($url, $new_name) = $self->_findFirstUrlFromChild($item);
+        return undef if $url eq '';
+        
+        my %new_info = %$info;
+        $new_info{url} = $url;
+        $item->setInfo(\%new_info);
+        $self->_addToItemsWithoutUrl($item->getName, $new_name);
+
+        return $url;
+    }
+    
+    # added for v0_07
+    sub _findFirstUrlFromChild {
+        my ($self, $item) = @_;
+
+        my $children = $item->getChildren;
+        unless ($children and @$children) {
+            return wantarray ? ('', '') : '';
+        }
+
+        my $first_child = $$children[0];
+        my $info = $first_child->getInfo;
+        my $url = $$info{url};
+
+        unless ($url eq '') {
+            return ($url, $first_child->getName);
+        }
+
+        return $self->_findFirstUrlFromChild($first_child);
+    }
+    
+    # added for v0_07
+    # Makes any adjustments necessary to the configuration
+    sub _fixupConf {
+        my ($self, $conf) = @_;
+        my $params = $self->_getParams;
+        return undef unless $$params{first_with_url};
+        
+        $conf = $self->getConfig unless $conf;
+        return undef unless $conf;
+
+        foreach my $item (@$conf) {
+            $self->_checkFirstUrl($item) if $$params{first_with_url};
+            
+            my $children = $item->getChildren;
+            if ($children and @$children) {
+                $self->_fixupConf($children);
+            }
+        }        
+    }
+
     sub findSelectedPath {
         my ($self, $conf, $key) = @_;
         return undef unless $conf;
-        
+
+        my $params = $self->_getParams;
         foreach my $item (@$conf) {
             if ($item->getName eq $key) {
                 return [ $item ];
@@ -346,6 +455,29 @@ use Carp;
         $$self{_iterator} = $iterator;
     }
 
+    # added for v0_07
+    sub _getParams {
+        my ($self) = @_;
+        my $params = $$self{_params};
+        $params = {} unless $params;
+        return $params;
+    }
+
+    sub _setParams {
+        my ($self, $params) = @_;
+        $$self{_params} = $params;
+    }
+
+    # added for v0_07
+    sub hasParamSetOpenAll {
+        my ($self) = @_;
+        my $params = $self->_getParams;
+        if ($$params{open_all}) {
+            return 1;
+        }
+
+        return undef;
+    }
 
 }
 
@@ -400,13 +532,6 @@ sub menu_callback {
 
 =over 4
 
-
-=item Drop down to first url
-
-Provide a way to skip being selected, e.g., if a menu item is
-selected that contains no url to go to, default to the first of
-its children that contains to a url.
-
 =item Last sibling
 
 Provide a way to tell if the current menu item is the last
@@ -436,6 +561,6 @@ of its siblings to be displayed.
 
 =head1 VERSION
 
-    0.06
+    0.07
 
 =cut

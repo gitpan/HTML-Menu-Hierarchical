@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 21:34:34
 # Authors: Don
 # Change log:
-# $Id: ItemInfo.pm,v 1.17 2003/04/09 04:43:33 don Exp $
+# $Id: ItemInfo.pm,v 1.18 2003/04/12 06:23:55 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -40,15 +40,16 @@ use Carp;
 {   package HTML::Menu::Hierarchical::ItemInfo;
 
     use vars qw($VERSION $AUTOLOAD);
-    $VERSION = do { my @r=(q$Revision: 1.17 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
+    $VERSION = do { my @r=(q$Revision: 1.18 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
     
     sub new {
-        my ($proto, $item, $selected_path, $key, $parent) = @_;
+        my ($proto, $item, $selected_path, $key, $parent, $params) = @_;
         my $self = bless {}, ref($proto) || $proto;
         $self->setItem($item);
         $self->setSelectedPath($selected_path);
         $self->setKey($key);
         $self->setParent($parent);
+        $self->_setParams($params);
         return $self;
     }
 
@@ -224,6 +225,8 @@ has child items and is also in the open path.  Return false otherwise.
         if (exists($$self{_is_open})) {
             return $$self{_is_open};
         }
+
+        return 1 if $self->_hasSetOpenAll;
 
         my ($is_set, $val) = $self->_checkOpenField;
         return $val if $is_set;
@@ -458,6 +461,35 @@ Returns the info object for the current item's parent.
         $$self{_parent} = $parent;
     }
 
+    # added for v0_07
+    sub _getParams {
+        my ($self) = @_;
+        return $$self{_params} || {};
+    }
+
+    # added for v0_07
+    sub _setParams {
+        my ($self, $params) = @_;
+        $$self{_params} = $params;
+    }
+
+    # added for v0_07
+    sub _getTopMenuObj {
+        my ($self) = @_;
+        my $params = $self->_getParams;
+        my $obj = $$params{top_menu_obj};
+        return $obj;
+    }
+
+    # added for v0_07
+    sub _hasSetOpenAll {
+        my ($self) = @_;
+        my $top_menu_obj = $self->_getTopMenuObj;
+        return undef unless $top_menu_obj;
+
+        return $top_menu_obj->hasParamSetOpenAll;
+    }
+
     ###########
     # utilities
 
@@ -688,6 +720,6 @@ __END__
 
 =head1 VERSION
 
-$Id: ItemInfo.pm,v 1.17 2003/04/09 04:43:33 don Exp $
+$Id: ItemInfo.pm,v 1.18 2003/04/12 06:23:55 don Exp $
 
 =cut

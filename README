@@ -2,7 +2,7 @@ NAME
     HTML::Menu::Hierarchical - HTML Hierarchical Menu Generator
 
 SYNOPSIS
-        my $menu_obj = HTML::Menu::Hierarchical->new($conf, \&callback);
+        my $menu_obj = HTML::Menu::Hierarchical->new($conf, \&callback, $params);
         my $html = $menu_obj->generateMenu($menu_item);
 
         or
@@ -15,6 +15,25 @@ SYNOPSIS
 
         The $conf parameter is a navigation configuration data structure
         (described below).
+
+        The $params parameter is an optional hash reference
+        containing parameters pertaining to the menu as a whole.
+        Recognized parameters are:
+
+  first_with_url
+        If this is set to a true value and you are using the 'url'
+        field in the info hash (see below) in the configuration to
+        specify the url for the menu item, then if a menu item is
+        chosen that does not have a url configured, the url for that
+        menu item will be changed to the url of the first child menu
+        item that has a url configured.  This works by looking at the
+        items first child, then at that child's first child, and so
+        on.  It does not look at the second child.
+
+  open_all
+        This has the same effect as the open_all parameter in the
+        menu configuration structure mentioned below, except that it
+        affects the entire menu hierarchy.
 
 DESCRIPTION
         HTML::Menu::Hierarchical provides a way to easily
@@ -146,11 +165,6 @@ EXAMPLES
         }
 
 TODO
-    Drop down to first url
-        Provide a way to skip being selected, e.g., if a menu item is
-        selected that contains no url to go to, default to the first of its
-        children that contains to a url.
-
     Last sibling
         Provide a way to tell if the current menu item is the last of its
         siblings to be displayed.
@@ -172,7 +186,7 @@ COPYRIGHT
         itself.
 
 VERSION
-        0.06
+        0.07
 
 NAME
     HTML::Menu::Hierarchical::ItemInfo - Used by HTML::Menu::Hierarchical.
@@ -302,5 +316,5 @@ COPYRIGHT
         itself.
 
 VERSION
-    $Id: README,v 1.5 2003/04/09 04:44:56 don Exp $
+    $Id: README,v 1.7 2003/04/12 06:38:27 don Exp $
 
