@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 21:34:34
 # Authors: Don
 # Change log:
-# $Id: ItemInfo.pm,v 1.22 2003/04/27 01:25:20 don Exp $
+# $Id: ItemInfo.pm,v 1.23 2003/05/06 15:30:09 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -40,7 +40,7 @@ use Carp;
 {   package HTML::Menu::Hierarchical::ItemInfo;
 
     use vars qw($VERSION $AUTOLOAD);
-    $VERSION = do { my @r=(q$Revision: 1.22 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
+    $VERSION = do { my @r=(q$Revision: 1.23 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
     
     sub new {
         my ($proto, $item, $selected_path, $key, $parent, $params) = @_;
@@ -116,7 +116,9 @@ use Carp;
     sub getSelectedItem {
         my ($self) = @_;
         my $selected_path = $self->_getSelectedPath;
-        return $self->new($$selected_path[$#$selected_path], $selected_path, $self->getKey);
+        my $last_index = $#$selected_path;
+        return undef if $last_index < 0;
+        return $self->new($$selected_path[$last_index], $selected_path, $self->getKey);
     }
     *get_selected_item = \&getSelectedItem;
 
@@ -147,6 +149,7 @@ use Carp;
         my ($self) = @_;
         my $selected_path = $self->_getSelectedPath;
         my $max_level = $#$selected_path;
+        return $max_level if $max_level < 0;
         if ($$selected_path[$max_level]->hasChildren) {
             $max_level++;
         }
@@ -747,6 +750,6 @@ __END__
 
 =head1 VERSION
 
- $Id: ItemInfo.pm,v 1.22 2003/04/27 01:25:20 don Exp $
+ $Id: ItemInfo.pm,v 1.23 2003/05/06 15:30:09 don Exp $
 
 =cut

@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 20:35:53
 # Authors: Don
 # Change log:
-# $Id: Hierarchical.pm,v 1.32 2003/04/27 01:25:20 don Exp $
+# $Id: Hierarchical.pm,v 1.34 2003/05/06 15:33:00 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -168,7 +168,7 @@ use Carp;
 
     use vars qw($VERSION);
     BEGIN {
-        $VERSION = 0.09; # update below in POD as well
+        $VERSION = '0.10'; # update below in POD as well
     }
 
     use HTML::Menu::Hierarchical::Item;
@@ -200,6 +200,7 @@ use Carp;
         return $list if $list;
 
         my $list = $self->generateOpenList($key);
+        $list = [] unless $list;
         $$self{_open_list}{$key} = $list;
 
         return $list;
@@ -648,6 +649,6 @@ siblings to be displayed.
 
 =head1 VERSION
 
- 0.09
+ 0.10
 
 =cut
