@@ -1,0 +1,8 @@
+MANIFEST
+README
+Makefile.PL
+Hierarchical.pm
+Hierarchical/Item.pm
+Hierarchical/ItemInfo.pm
+examples/simple.cgi
+examples/color.cgi
