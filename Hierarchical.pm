@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 20:35:53
 # Authors: Don
 # Change log:
-# $Id: Hierarchical.pm,v 1.29 2003/04/12 06:37:41 don Exp $
+# $Id: Hierarchical.pm,v 1.31 2003/04/20 21:13:44 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -14,128 +14,150 @@
 
 =head1 NAME
 
-HTML::Menu::Hierarchical - HTML Hierarchical Menu Generator
+ HTML::Menu::Hierarchical - HTML Hierarchical Menu Generator
 
 =head1 SYNOPSIS
 
-    my $menu_obj = HTML::Menu::Hierarchical->new($conf, \&callback, $params);
-    my $html = $menu_obj->generateMenu($menu_item);
+ my $menu_obj =
+     HTML::Menu::Hierarchical->new($conf, \&callback, $params);
 
-    or
+ my $html = $menu_obj->generateMenu($menu_item);
 
-    my $menu_obj = HTML::Menu::Hierarchical->new($conf, [ $obj, $method ]);
-    my $html = $menu_obj->generateMenu($menu_item);
+ or
 
-    In the first case, the callback is a function.  In the second, the
-    callback is a method called on the given object.
+ my $menu_obj =
+     HTML::Menu::Hierarchical->new($conf, [ $obj, $method ]);
 
-    The $conf parameter is a navigation configuration data structure
-    (described below).
+ my $html = $menu_obj->generateMenu($menu_item);
 
-    The $params parameter is an optional hash reference
-    containing parameters pertaining to the menu as a whole.
-    Recognized parameters are:
+ In the first case, the callback is a function.  In the second,
+ the callback is a method called on the given object.
 
-=head2 first_with_url
+ The $conf parameter is a navigation configuration data structure
+ (described below).
 
-    If this is set to a true value and you are using the 'url'
-    field in the info hash (see below) in the configuration to
-    specify the url for the menu item, then if a menu item is
-    chosen that does not have a url configured, the url for that
-    menu item will be changed to the url of the first child menu
-    item that has a url configured.  This works by looking at the
-    items first child, then at that child's first child, and so
-    on.  It does not look at the second child.
+ The $params parameter is an optional hash reference containing
+ parameters pertaining to the menu as a whole.  Recognized
+ parameters are:
 
-=head2 open_all
+=over 4
 
-    This has the same effect as the open_all parameter in the
-    menu configuration structure mentioned below, except that it
-    affects the entire menu hierarchy.
+=item first_with_url
+
+ If this is set to a true value and you are using the 'url'
+ field in the info hash (see below) in the configuration to
+ specify the url for the menu item, then if a menu item is
+ chosen that does not have a url configured, the url for that
+ menu item will be changed to the url of the first child menu
+ item that has a url configured.  This works by looking at the
+ items first child, then at that child's first child, and so
+ on.  It does not look at the second child.
+
+=item open_all
+
+ This has the same effect as the open_all parameter in the
+ menu configuration structure mentioned below, except that it
+ affects the entire menu hierarchy.
+
+=item old_style_url
+
+ When using the utilities urlEncodeVars() and addArgsToUrl(),
+ this parameter controls which separator is used to separate
+ key/value pairs in the generated query string.  Setting
+ old_style_url to a true value will cause an ampersand ('&')
+ to be used as the separator.
+
+=item new_style_url
+
+ When using the utilities urlEncodeVars() and addArgsToUrl(),
+ this parameter controls which separator is used to separate
+ key/value pairs in the generated query string.  Setting
+ new_style_url to a true value will cause a semicolon (';') to
+ be used as the separator, as recommended by the W3C.  This
+ will become the default in a later release.
+
+=back
 
 =head1 DESCRIPTION
 
-    HTML::Menu::Hierarchical provides a way to easily
-    generate a hierarchical HTML menu without forcing a specific
-    layout.  All output is provided by your own callbacks (subroutine
-    refs) and your own navigation configuration.
+ HTML::Menu::Hierarchical provides a way to easily generate a
+ hierarchical HTML menu without forcing a specific layout.
+ All output is provided by your own callbacks (subroutine
+ refs) and your own navigation configuration.
 
 =head2 configuration data structure
 
-    A navigation configuration is a reference to an array whose
-    elements are hashrefs.  Each hash contains configuration
-    information for one menu item and its children, if any.  Consider
-    the following example:
+ A navigation configuration is a reference to an array whose
+ elements are hashrefs.  Each hash contains configuration
+ information for one menu item and its children, if any.
+ Consider the following example:
 
-    my $conf = [
-                { name => 'top_button_1',
-                  info => { text => 'Top Level Button 1',
-                            url => '/'
-                          },
-                  open => 1, # force this item's children to be displayed
-                  children => [
-                               { name => 'button_1_level_2',
-                                 info => { text => "Child 1 of Button 1",
-                                           url => '/child1.cgi'
-                                         },
-                               },
+ my $conf = [
+             { name => 'top_button_1',
+               info => { text => 'Top Level Button 1',
+                         url => '/'
+                       },
+               open => 1, # force this item's children to be displayed
+               children => [
+                            { name => 'button_1_level_2',
+                              info => { text => "Child 1 of Button 1",
+                                        url => '/child1.cgi'
+                                      },
+                            },
+                            ]
+             },
 
-                              ]
-                },
-
-                { name => 'top_button_2',
-                  info => { text => 'Top Level Button 2',
-                            url => '/top2.cgi'
-                          },
-                  callback => [ $obj, 'my_callback' ]
-                },
+             { name => 'top_button_2',
+               info => { text => 'Top Level Button 2',
+                         url => '/top2.cgi'
+                       },
+               callback => [ $obj, 'my_callback' ]
+             },
                 
-               ];
+            ];
 
-    In each hash, the 'name' parameter should correspond to the
-    $menu_item parameter passed to the generateMenu() method.
-    This is how the module computes which menu item is selected.
-    This is generally passed via a CGI parameter, which can be
-    tacked onto the end of the url in your callback function.
-    Note that this parameter must be unique among all the array
-    entries.  Otherwise, the module will not be able to decide
-    which menu item is selected.
+ In each hash, the 'name' parameter should correspond to the
+ $menu_item parameter passed to the generateMenu() method.  This
+ is how the module computes which menu item is selected.  This is
+ generally passed via a CGI parameter, which can be tacked onto
+ the end of the url in your callback function.  Note that this
+ parameter must be unique among all the array entries.
+ Otherwise, the module will not be able to decide which menu item
+ is selected.
 
-    The value of the 'info' parameter is available to your
-    callback function via the getInfo() method called on the
-    HTML::Menu::Hierarchical::ItemInfo object passed to the
-    callback function.  In the above example, the 'info'
-    parameter contains text to be displayed as the menu item, and
-    a url the user is sent to when clicking on the menu item.
+ The value of the 'info' parameter is available to your callback
+ function via the getInfo() method called on the
+ HTML::Menu::Hierarchical::ItemInfo object passed to the callback
+ function.  In the above example, the 'info' parameter contains
+ text to be displayed as the menu item, and a url the user is
+ sent to when clicking on the menu item.
 
-    The 'children' parameter is a reference to another array
-    containing configuration information for child menu items.
-    This is where the Hierarchical part comes in.  There is no
-    limit to depth of the hierarchy (until you run out of RAM,
-    anyway).
+ The 'children' parameter is a reference to another array
+ containing configuration information for child menu items.  This
+ is where the Hierarchical part comes in.  There is no limit to
+ depth of the hierarchy (until you run out of RAM, anyway).
 
-    If a 'callback' parameter is specified that callback will be
-    used for that menu item instead of the global callback passed
-    to new().
+ If a 'callback' parameter is specified that callback will be
+ used for that menu item instead of the global callback passed to
+ new().
 
-    An 'open' parameter can be specified to force an item's
-    children to be displayed.  This can be a scalar value that
-    indicates true or false.  Or it can be a subroutine reference
-    that returns a true or false value.  It can also be an array,
-    in which case the first element is expected to be an object,
-    the second element the name of a method to call on that
-    object, and the rest of the elements will be passed as
-    arguments to the method.  If an 'open_all' parameter is
-    passed, the current item and all items under it in the
-    hierarchy will be forced open.
+ An 'open' parameter can be specified to force an item's children
+ to be displayed.  This can be a scalar value that indicates true
+ or false.  Or it can be a subroutine reference that returns a
+ true or false value.  It can also be an array, in which case the
+ first element is expected to be an object, the second element
+ the name of a method to call on that object, and the rest of the
+ elements will be passed as arguments to the method.  If an
+ 'open_all' parameter is passed, the current item and all items
+ under it in the hierarchy will be forced open.
 
 =head2 callback functions/methods
 
-    Callback functions are passed a single parameter: an
-    HTML::Menu::Hierarchical::ItemInfo object.  See the
-    documentation on this object for available methods.  The
-    callback function should return the HTML necessary for the
-    corresponding menu item.
+ Callback functions are passed a single parameter: an
+ HTML::Menu::Hierarchical::ItemInfo object.  See the
+ documentation on this object for available methods.  The
+ callback function should return the HTML necessary for the
+ corresponding menu item.
 
 =cut
 
@@ -146,7 +168,7 @@ use Carp;
 
     use vars qw($VERSION);
     BEGIN {
-        $VERSION = 0.07; # update below in POD as well
+        $VERSION = 0.08; # update below in POD as well
     }
 
     use HTML::Menu::Hierarchical::Item;
@@ -175,10 +197,10 @@ use Carp;
 
 =head2 generateMenu()
     
-    my $html = $menu_obj->generateMenu($menu_item);
+ my $html = $menu_obj->generateMenu($menu_item);
 
-    $menu_item is the 'name' parameter of the selected item,
-    typically passed as a CGI parameter.
+ $menu_item is the 'name' parameter of the selected item,
+ typically passed as a CGI parameter.
 
 =cut
 
@@ -201,10 +223,10 @@ use Carp;
 
 =head2 addChildConf()
 
-    $menu_obj->addChildConf($conf, $menu_item_name);
+ $menu_obj->addChildConf($conf, $menu_item_name);
 
-    Adds another configuration tree into the current
-    configuration at the specified node (name of the menu item).
+ Adds another configuration tree into the current configuration
+ at the specified node (name of the menu item).
 
 =cut
     # added for v0_02
@@ -275,7 +297,11 @@ use Carp;
         my $new_level = $level + 1;
         my $list = [];
 
-        my $params = { top_menu_obj => $self };
+        my $hier_params = $self->_getParams;
+        my $params = { top_menu_obj => $self,
+                       old_style_url => $$hier_params{old_style_url},
+                       new_style_url => $$hier_params{new_style_url},
+                     };
         my $info_obj = HTML::Menu::Hierarchical::ItemInfo->new($item, $selected_path, $key,
                                                                $parent, $params);
         
@@ -489,15 +515,15 @@ __END__
 
 =head2 There are also underscore_separated versions of these methods.
 
-    E.g., unescapeHtml($html) becomes unescape_html($html)
+ E.g., unescapeHtml($html) becomes unescape_html($html)
 
 =head1 EXAMPLES
 
-    See the scripts in the examples subdirectory for example usages.
+ See the scripts in the examples subdirectory for example usages.
 
-    See the documentation for HTML::Menu::Hierarchical::ItemInfo for
-    methods available via the $info_obj parameter passed to the
-    menu_callback function below.
+ See the documentation for HTML::Menu::Hierarchical::ItemInfo for
+ methods available via the $info_obj parameter passed to the
+ menu_callback function below.
 
 =over 4
 
@@ -534,33 +560,33 @@ sub menu_callback {
 
 =item Last sibling
 
-Provide a way to tell if the current menu item is the last
-of its siblings to be displayed.
+Provide a way to tell if the current menu item is the last of its
+siblings to be displayed.
 
 =back
 
 
 =head1 BUGS
 
-    Please send bug reports/feature requests to don@owensnet.com.
+ Please send bug reports/feature requests to don@owensnet.com.
 
-    There are currently no checks for loops in the configuration data
-    structure passed to the module.
+ There are currently no checks for loops in the configuration
+ data structure passed to the module.
 
 =head1 AUTHOR
 
-    Don Owens <don@owensnet.com>
+ Don Owens <don@owensnet.com>
 
 =head1 COPYRIGHT
 
-    Copyright (c) 2003 Don Owens
+ Copyright (c) 2003 Don Owens
 
-    All rights reserved. This program is free software; you can
-    redistribute it and/or modify it under the same terms as Perl
-    itself.
+ All rights reserved. This program is free software; you can
+ redistribute it and/or modify it under the same terms as Perl
+ itself.
 
 =head1 VERSION
 
-    0.07
+ 0.08
 
 =cut

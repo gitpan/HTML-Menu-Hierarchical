@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 21:34:34
 # Authors: Don
 # Change log:
-# $Id: ItemInfo.pm,v 1.18 2003/04/12 06:23:55 don Exp $
+# $Id: ItemInfo.pm,v 1.21 2003/04/20 21:18:39 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -17,16 +17,16 @@
 
 =head1 NAME
 
-HTML::Menu::Hierarchical::ItemInfo - Used by HTML::Menu::Hierarchical.
-  Provides information about the menu item being processed.
+ HTML::Menu::Hierarchical::ItemInfo - Used by HTML::Menu::Hierarchical.
+ Provides information about the menu item being processed.
 
 =head1 SYNOPSIS
 
-Created by HTML::Menu::Hierarchical objects.
+ Created by HTML::Menu::Hierarchical objects.
 
 =head1 DESCRIPTION
 
-Information holder/gatherer representing one menu item.
+ Information holder/gatherer representing one menu item.
 
 =head1 METHODS
 
@@ -40,7 +40,7 @@ use Carp;
 {   package HTML::Menu::Hierarchical::ItemInfo;
 
     use vars qw($VERSION $AUTOLOAD);
-    $VERSION = do { my @r=(q$Revision: 1.18 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
+    $VERSION = do { my @r=(q$Revision: 1.21 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
     
     sub new {
         my ($proto, $item, $selected_path, $key, $parent, $params) = @_;
@@ -57,8 +57,8 @@ use Carp;
 
 =head2 hasChildren()
 
-Returns true if the current item has child items in the configuration.
-False otherwise.
+ Returns true if the current item has child items in the
+ configuration.  False otherwise.
 
 =cut
     sub hasChildren {
@@ -71,7 +71,7 @@ False otherwise.
 
 =head2 isSelected()
 
-Returns true if the current item is the selected one.
+ Returns true if the current item is the selected one.
 
 =cut
     sub isSelected {
@@ -89,8 +89,8 @@ Returns true if the current item is the selected one.
 
 =head2 isInSelectedPath()
 
-Returns true if the current item is in the path from the root of the
-hierarchy to the selected item.
+ Returns true if the current item is in the path from the root of
+ the hierarchy to the selected item.
 
 =cut
     sub isInSelectedPath {
@@ -109,7 +109,8 @@ hierarchy to the selected item.
 
 =head2 getSelectedItem()
 
-Returns the ItemInfo object corresponding to the selected menu item.
+ Returns the ItemInfo object corresponding to the selected menu
+ item.
 
 =cut
     sub getSelectedItem {
@@ -123,8 +124,8 @@ Returns the ItemInfo object corresponding to the selected menu item.
 
 =head2 getSelectedLevel()
 
-Returns the level in the hierarchy where the selected menu item is
-located.  Levels start at zero.
+ Returns the level in the hierarchy where the selected menu item
+ is located.  Levels start at zero.
 
 =cut
     sub getSelectedLevel {
@@ -138,7 +139,8 @@ located.  Levels start at zero.
 
 =head2 getMaxDisplayedLevel()
 
-Returns the maximum level in the hierarchy to currently be displayed.
+ Returns the maximum level in the hierarchy to currently be
+ displayed.
 
 =cut
     sub getMaxDisplayedLevel {
@@ -216,8 +218,9 @@ Returns the maximum level in the hierarchy to currently be displayed.
 
 =head2 isOpen()
 
-Returns true if the current menu item is open, i.e., the current item
-has child items and is also in the open path.  Return false otherwise.
+ Returns true if the current menu item is open, i.e., the current
+ item has child items and is also in the open path.  Return false
+ otherwise.
 
 =cut
     sub isOpen {
@@ -260,8 +263,8 @@ has child items and is also in the open path.  Return false otherwise.
 
 =head2 isFirstDisplayed()
 
-Returns true if the current menu item is the first one to be
-displayed.
+ Returns true if the current menu item is the first one to be
+ displayed.
 
 =cut
     # added for v0_02
@@ -280,8 +283,8 @@ displayed.
 
 =head2 isLastDisplayed()
 
-Returns true if the current menu item is the last to be
-displayed.
+ Returns true if the current menu item is the last to be
+ displayed.
 
 =cut
     # added for v0_02
@@ -300,12 +303,12 @@ displayed.
 
 =head2 getInfo()
 
-Returns the value of the 'info' field for the current menu item
-in the navigation configuration.
+ Returns the value of the 'info' field for the current menu item
+ in the navigation configuration.
 
-Instead of getting the 'info' hash and then accessing a field
-within it, you may call a method to get that field directly.
-This is implemented with AUTOLOAD, so if you do something like
+ Instead of getting the 'info' hash and then accessing a field
+ within it, you may call a method to get that field directly.
+ This is implemented with AUTOLOAD, so if you do something like
 
     my $text = $info_obj->getText;
     my $image_src = $info_obj->getImageSrc;
@@ -315,8 +318,8 @@ This is implemented with AUTOLOAD, so if you do something like
     my $text = $info_obj->getText;
     my $image_src = $info_obj->get_image_src;
 
-you will be given back the corresponding values in the 'info'
-hash.
+ you will be given back the corresponding values in the 'info'
+ hash.
 
 =cut
     sub getInfo {
@@ -342,9 +345,9 @@ hash.
 
 =head2 getName()
 
-Returns the 'name' field for the current menu item in the navigation
-configuration.  This is used to determine which menu item has been
-selected.
+ Returns the 'name' field for the current menu item in the
+ navigation configuration.  This is used to determine which menu
+ item has been selected.
 
 =cut
     sub getName {
@@ -360,8 +363,8 @@ selected.
 
 =head2 getNextItem()
 
-Returns the ItemInfo object corresponding to the next displayed menu
-item.
+ Returns the ItemInfo object corresponding to the next displayed
+ menu item.
 
 =cut
     sub getNextItem {
@@ -379,8 +382,8 @@ item.
 
 =head2 getPreviousItem()
 
-Returns the ItemInfo object corrsponding to the previously displayed
-menu item.
+ Returns the ItemInfo object corrsponding to the previously
+ displayed menu item.
 
 =cut
     sub getPreviousItem {
@@ -408,8 +411,8 @@ menu item.
 
 =head2 getLevel()
 
-Returns the level in the menu hierarchy where the current menu item is
-located.  Levels start at zero.
+ Returns the level in the menu hierarchy where the current menu
+ item is located.  Levels start at zero.
 
 =cut
     sub getLevel {
@@ -447,7 +450,7 @@ located.  Levels start at zero.
 
 =head2 getParent()
 
-Returns the info object for the current item's parent.
+ Returns the info object for the current item's parent.
 
 =cut
 
@@ -471,6 +474,13 @@ Returns the info object for the current item's parent.
     sub _setParams {
         my ($self, $params) = @_;
         $$self{_params} = $params;
+    }
+
+    # added for v0_08
+    sub _getParam {
+        my ($self, $param) = @_;
+        my $params = $self->_getParams;
+        return $$params{$param};
     }
 
     # added for v0_07
@@ -499,8 +509,8 @@ Returns the info object for the current item's parent.
 
 =head2 my $encoded = $info->urlEncode($plain_text)
 
-URL encodes the given string.  This does full url-encoding, so a
-space is %20, not a '+'.
+ URL encodes the given string.  This does full url-encoding, so a
+ space is %20, not a '+'.
 
 =cut
     sub urlEncode {
@@ -516,10 +526,16 @@ space is %20, not a '+'.
 
 =head2 my $query = $info->urlEncodeVars($var_hash)
 
-Takes a hash containing key/value pairs and returns a url-encoded
-query string appropriate for adding to the end of a url.  If a
-value is an array, it is assumed to be a multivalued input field
-and is added to the query string as such.
+ Takes a hash containing key/value pairs and returns a
+ url-encoded query string appropriate for adding to the end of a
+ url.  If a value is an array, it is assumed to be a multivalued
+ input field and is added to the query string as such.
+
+ If you want to encode the query stirng in the new style
+ recommended by the W3C (use a semicolon as a separator in place
+ of ampersand), pass a true value for the new_style_url parameter
+ when creating the HTML::Menu::Hierarchical object.  This will
+ become the default in a later release.
 
 =cut
     sub urlEncodeVars {
@@ -541,7 +557,7 @@ and is added to the query string as such.
             }
         }
 
-        return join("&", @pairs);
+        return join($self->_getUrlSeparator, @pairs);
     }
     *url_encode_vars = \&urlEncodeVars;
 
@@ -549,7 +565,7 @@ and is added to the query string as such.
 
 =head2 my $plain_text = $info->urlDecode($url_enc_str)
 
-Decodes the given url-encoded string.
+ Decodes the given url-encoded string.
 
 =cut
     sub urlDecode {
@@ -566,10 +582,10 @@ Decodes the given url-encoded string.
 
 =head2 my $var_hash = $info->urlDecodeVars($url_enc_str)
 
-Decodes the url-encoded query string and returns a hash contain
-key/value pairs from the query string.  If a field appears more
-than once in the query string, it's value will be returned as a
-reference to an array of values.
+ Decodes the url-encoded query string and returns a hash contain
+ key/value pairs from the query string.  If a field appears more
+ than once in the query string, it's value will be returned as a
+ reference to an array of values.
 
 =cut
     sub urlDecodeVars {
@@ -577,7 +593,7 @@ reference to an array of values.
         my $pair;
         my $vars = {};
 
-        foreach $pair (split /\&/, $query_string) {
+        foreach $pair (split /[;&]/, $query_string) {
             my ($name, $field) = map { $self->urlDecode($_) } split(/=/, $pair, 2);
 
             if (exists($$vars{$name})) {
@@ -596,19 +612,30 @@ reference to an array of values.
     }
     *url_decode_vars = \&urlDecodeVars;
 
+    sub _getUrlSeparator {
+        my ($self) = @_;
+        if ($self->_getParam('old_style_url')) {
+            return '&';
+        } elsif ($self->_getParam('new_style_url')) {
+            return ';';
+        } else {
+            return '&';
+        }
+    }
+
 =pod
 
 =head2 my $modified_url = $info->addArgsToUrl($url, $var_hash)
 
-Takes the key/value pairs in $var_hash and tacks them onto the
-end of $url as a query string.
+ Takes the key/value pairs in $var_hash and tacks them onto the
+ end of $url as a query string.
 
 =cut
     sub addArgsToUrl {
         my ($self, $url, $args) = @_;
         
         if ($url =~ /\?/) {
-            $url .= '&' unless $url =~ /\?$/;
+            $url .= $self->_getUrlSeparator unless $url =~ /\?$/;
         } else {
             $url .= '?';
         }
@@ -629,7 +656,7 @@ end of $url as a query string.
 
 =head2 my $html = $info->escapeHtml($text)
 
-Escapes the given text so that it is not interpreted as HTML.
+ Escapes the given text so that it is not interpreted as HTML.
 
 =cut
 
@@ -650,7 +677,7 @@ Escapes the given text so that it is not interpreted as HTML.
 
 =head2 my $text = $info->unescapeHtml($html)
 
-Unescape the escaped text.
+ Unescape the escaped text.
 
 =cut
     
@@ -700,26 +727,26 @@ __END__
 
 =head2 There are also underscore_separated versions of these methods.
 
-    E.g., unescapeHtml($html) becomes unescape_html($html)
+ E.g., unescapeHtml($html) becomes unescape_html($html)
 
 =head1 BUGS
 
-    Please send bug reports/feature requests to don@owensnet.com.
+ Please send bug reports/feature requests to don@owensnet.com.
 
 =head1 AUTHOR
 
-    Don Owens <don@owensnet.com>
+ Don Owens <don@owensnet.com>
 
 =head1 COPYRIGHT
 
-    Copyright (c) 2003 Don Owens
+ Copyright (c) 2003 Don Owens
 
-    All rights reserved. This program is free software; you can
-    redistribute it and/or modify it under the same terms as Perl
-    itself.
+ All rights reserved. This program is free software; you can
+ redistribute it and/or modify it under the same terms as Perl
+ itself.
 
 =head1 VERSION
 
-$Id: ItemInfo.pm,v 1.18 2003/04/12 06:23:55 don Exp $
+ $Id: ItemInfo.pm,v 1.21 2003/04/20 21:18:39 don Exp $
 
 =cut
