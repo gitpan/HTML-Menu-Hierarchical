@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 20:35:53
 # Authors: Don
 # Change log:
-# $Id: Hierarchical.pm,v 1.16 2003/03/06 06:26:15 don Exp $
+# $Id: Hierarchical.pm,v 1.19 2003/04/02 05:39:03 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -105,7 +105,7 @@ use Carp;
 
     use vars qw($VERSION);
     BEGIN {
-        $VERSION = 0.02;
+        $VERSION = 0.04; # update below in POD as well
     }
 
     use HTML::Menu::Hierarchical::Item;
@@ -153,6 +153,7 @@ use Carp;
         
         return $str;
     }
+    *generate_menu = \&generateMenu;
 
 =pod
 
@@ -178,6 +179,7 @@ use Carp;
 
         return 1;
     }
+    *add_child_conf = \&addChildConf;
     
     sub generateOpenList {
         my ($self, $key) = @_;
@@ -327,6 +329,10 @@ __END__
 
 =pod
 
+=head2 There are also underscore_separated versions of these methods.
+
+    E.g., unescapeHtml($html) becomes unescape_html($html)
+
 =head1 EXAMPLES
 
     See the scripts in the examples subdirectory for example usages.
@@ -408,6 +414,6 @@ of its siblings to be displayed.
 
 =head1 VERSION
 
-$Id: Hierarchical.pm,v 1.16 2003/03/06 06:26:15 don Exp $
+    0.04
 
 =cut

@@ -2,13 +2,16 @@
 # Creation date: 2003-01-05 21:34:34
 # Authors: Don
 # Change log:
-# $Id: ItemInfo.pm,v 1.11 2003/03/06 06:26:15 don Exp $
+# $Id: ItemInfo.pm,v 1.13 2003/04/02 05:38:38 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
 # All rights reserved. This program is free software; you can
 # redistribute it and/or modify it under the same terms as Perl
 # itself.
+#
+# The underscore separated versions of the methods added for
+# version v0_03 by request.
 
 =pod
 
@@ -36,8 +39,8 @@ use Carp;
 
 {   package HTML::Menu::Hierarchical::ItemInfo;
 
-    use vars qw($VERSION);
-    $VERSION = do { my @r=(q$Revision: 1.11 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
+    use vars qw($VERSION $AUTOLOAD);
+    $VERSION = do { my @r=(q$Revision: 1.13 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
     
     sub new {
         my ($proto, $item, $selected_path, $key) = @_;
@@ -60,6 +63,7 @@ False otherwise.
         my ($self) = @_;
         return $self->getItem()->hasChildren;
     }
+    *has_children = \&hasChildren;
 
 =pod
 
@@ -77,6 +81,7 @@ Returns true if the current item is the selected one.
         
         return undef;
     }
+    *is_selected = \&isSelected;
 
 =pod
 
@@ -96,6 +101,7 @@ hierarchy to the selected item.
         }
         return undef;
     }
+    *is_in_selected_path = \&isInSelectedPath;
 
 =pod
 
@@ -109,6 +115,7 @@ Returns the ItemInfo object corresponding to the selected menu item.
         my $selected_path = $self->getSelectedPath;
         return $self->new($$selected_path[$#$selected_path], $selected_path, $self->getKey);
     }
+    *get_selected_item = \&getSelectedItem;
 
 =pod
 
@@ -123,6 +130,7 @@ located.  Levels start at zero.
         my $selected_path = $self->getSelectedPath;
         return $#$selected_path;
     }
+    *get_selected_level = \&getSelectedLevel;
 
 =pod
 
@@ -140,6 +148,7 @@ Returns the maximum level in the hierarchy to currently be displayed.
         }
         return $max_level;
     }
+    *get_max_displayed_level = \&getMaxDisplayedLevel;
 
 =pod
 
@@ -175,6 +184,7 @@ has child items and is also in the open path.  Return false otherwise.
         $$self{_is_open} = undef;
         return undef;
     }
+    *is_open = \&isOpen;
 
 =pod
 
@@ -194,6 +204,7 @@ displayed.
             return 1;
         }
     }
+    *is_first_displayed = \&isFirstDisplayed;
 
 =pod
 
@@ -213,6 +224,7 @@ displayed.
             return 1;
         }
     }
+    *is_last_displayed = \&isLastDisplayed;
 
 =pod
 
@@ -221,11 +233,27 @@ displayed.
 Returns the value of the 'info' field for the current menu item
 in the navigation configuration.
 
+Instead of getting the 'info' hash and then accessing a field
+within it, you may call a method to get that field directly.
+This is implemented with AUTOLOAD, so if you do something like
+
+    my $text = $info_obj->getText;
+    my $image_src = $info_obj->getImageSrc;
+
+        or
+
+    my $text = $info_obj->getText;
+    my $image_src = $info_obj->get_image_src;
+
+you will be given back the corresponding values in the 'info'
+hash.
+
 =cut
     sub getInfo {
         my ($self) = @_;
         return $self->getItem()->getInfo;
     }
+    *get_info = \&getInfo;
 
 =pod
 
@@ -240,7 +268,7 @@ selected.
         my ($self) = @_;
         return $self->getItem()->getName;
     }
-
+    *get_name = \&getName;
 
     #####################
     # getters and setters
@@ -257,6 +285,7 @@ item.
         my ($self) = @_;
         return $$self{_next_item};
     }
+    *get_next_item = \&getNextItem;
 
     sub setNextItem {
         my ($self, $item) = @_;
@@ -275,6 +304,7 @@ menu item.
         my ($self) = @_;
         return $$self{_previous_item};
     }
+    *get_previous_item = \&getPreviousItem;
 
     sub setPreviousItem {
         my ($self, $item) = @_;
@@ -303,6 +333,7 @@ located.  Levels start at zero.
         my ($self) = @_;
         return $$self{_level};
     }
+    *get_level = \&getLevel;
 
     sub setLevel {
         my ($self, $level) = @_;
@@ -349,6 +380,7 @@ space is %20, not a '+'.
 
         return $str;
     }
+    *url_encode = \&urlEncode;
 
 =pod
 
@@ -381,6 +413,7 @@ and is added to the query string as such.
 
         return join("&", @pairs);
     }
+    *url_encode_vars = \&urlEncodeVars;
 
 =pod
 
@@ -397,6 +430,7 @@ Decodes the given url-encoded string.
 
         return $str;
     }
+    *url_decode = \&urlDecode;
 
 =pod
 
@@ -430,6 +464,7 @@ reference to an array of values.
 
         return wantarray ? %$vars : $vars;
     }
+    *url_decode_vars = \&urlDecodeVars;
 
 =pod
 
@@ -458,6 +493,7 @@ end of $url as a query string.
         $url .= $arg_str;
         return $url;
     }
+    *add_args_to_url = \&addArgsToUrl;
 
 =pod
 
@@ -478,6 +514,7 @@ Escapes the given text so that it is not interpreted as HTML.
 
         return $text;
     }
+    *escape_html = \&escapeHtml;
 
 =pod
 
@@ -497,7 +534,31 @@ Unescape the escaped text.
 
         return $text;
     }
-    
+    *unescape_html = \&unescapeHtml;
+
+    sub AUTOLOAD {
+        my $self = shift;
+        
+        my $method = $AUTOLOAD;
+        $method =~ s/^.*::([^:]+)$/$1/;
+
+        if ($method =~ /^get(.+)$/) {
+            my $str = $1;
+            if ($str =~ /_/) {
+                $str =~ s/^_//;
+                return $self->getInfo()->{$str};
+            } elsif ($str =~ /^[A-Z]/) {
+                $str = lcfirst($str);
+                $str =~ s/([A-Z])/_\L$1/g;
+
+                return $self->getInfo()->{$str};                
+            } else {
+                return "invalid name";
+            }
+        }
+
+        return "undefined method $method";
+    }
 
 }
 
@@ -506,6 +567,10 @@ Unescape the escaped text.
 __END__
 
 =pod
+
+=head2 There are also underscore_separated versions of these methods.
+
+    E.g., unescapeHtml($html) becomes unescape_html($html)
 
 =head1 BUGS
 
@@ -525,6 +590,6 @@ __END__
 
 =head1 VERSION
 
-$Id: ItemInfo.pm,v 1.11 2003/03/06 06:26:15 don Exp $
+$Id: ItemInfo.pm,v 1.13 2003/04/02 05:38:38 don Exp $
 
 =cut
