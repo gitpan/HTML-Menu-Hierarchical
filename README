@@ -203,8 +203,7 @@ COPYRIGHT
      itself.
 
 VERSION
-     0.11
-
+     0.12
 
 NAME
      HTML::Menu::Hierarchical::ItemInfo - Used by HTML::Menu::Hierarchical.
@@ -253,6 +252,10 @@ METHODS
   isLastDisplayed()
      Returns true if the current menu item is the last to be
      displayed.
+
+  isFirstSiblingDisplayed()
+     Returns true if the current menu item is the first of its
+     siblings to be displayed, false otherwise.
 
   isLastSiblingDisplayed()
      Returns true if the current menu item is the last of its
@@ -350,5 +353,5 @@ COPYRIGHT
      itself.
 
 VERSION
-     $Id: README,v 1.12 2003/09/21 05:05:43 don Exp $
+     $Id: README,v 1.13 2003/12/24 19:47:55 don Exp $
 

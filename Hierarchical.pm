@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 20:35:53
 # Authors: Don
 # Change log:
-# $Id: Hierarchical.pm,v 1.36 2003/09/21 05:05:20 don Exp $
+# $Id: Hierarchical.pm,v 1.38 2003/12/24 19:44:28 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -168,7 +168,7 @@ use Carp;
 
     use vars qw($VERSION);
     BEGIN {
-        $VERSION = '0.11'; # update below in POD as well
+        $VERSION = '0.12'; # update below in POD as well
     }
 
     use HTML::Menu::Hierarchical::Item;
@@ -637,6 +637,6 @@ sub menu_callback {
 
 =head1 VERSION
 
- 0.11
+ 0.12
 
 =cut

@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 21:34:34
 # Authors: Don
 # Change log:
-# $Id: ItemInfo.pm,v 1.24 2003/09/21 05:05:20 don Exp $
+# $Id: ItemInfo.pm,v 1.26 2003/12/24 19:44:28 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -40,7 +40,7 @@ use Carp;
 {   package HTML::Menu::Hierarchical::ItemInfo;
 
     use vars qw($VERSION $AUTOLOAD);
-    $VERSION = do { my @r=(q$Revision: 1.24 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
+    $VERSION = do { my @r=(q$Revision: 1.26 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
     
     sub new {
         my ($proto, $item, $selected_path, $key, $parent, $params) = @_;
@@ -184,7 +184,7 @@ use Carp;
 
     sub _checkOpenField {
         my ($self, $field, $attr) = @_;
-        if ($field eq '') {
+        unless (defined($field)) {
             $field = 'open';
             $attr = '_is_open';
         }
@@ -304,6 +304,32 @@ use Carp;
 
 =pod
 
+
+=head2 isFirstSiblingDisplayed()
+
+ Returns true if the current menu item is the first of its
+ siblings to be displayed, false otherwise.
+
+=cut
+    sub isFirstSiblingDisplayed {
+        my ($info_obj) = @_;
+        my $self = $info_obj;
+        
+        my $my_level = $self->getLevel;
+        my $item = $self;
+        while (1) {
+            $item = $self->getPreviousItem;
+            return 1 unless $item;
+            my $level = $item->getLevel;
+            return undef if $level > $my_level;
+            return undef if $level == $my_level;
+            return 1 if $level < $my_level;
+        }
+        
+        return undef;
+    }
+    *is_first_sibling_displayed = \&isFirstSiblingDisplayed;
+
 =head2 isLastSiblingDisplayed()
 
  Returns true if the current menu item is the last of its
@@ -325,6 +351,8 @@ use Carp;
         
         return undef;
     }
+
+    *is_last_sibling_displayed = \&isLastSiblingDisplayed;
 
 =pod
 
@@ -774,6 +802,6 @@ __END__
 
 =head1 VERSION
 
- $Id: ItemInfo.pm,v 1.24 2003/09/21 05:05:20 don Exp $
+ $Id: ItemInfo.pm,v 1.26 2003/12/24 19:44:28 don Exp $
 
 =cut
