@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 20:35:53
 # Authors: Don
 # Change log:
-# $Id: Hierarchical.pm,v 1.21 2003/04/03 06:03:09 don Exp $
+# $Id: Hierarchical.pm,v 1.23 2003/04/09 04:44:30 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -51,6 +51,7 @@ HTML::Menu::Hierarchical - HTML Hierarchical Menu Generator
                   info => { text => 'Top Level Button 1',
                             url => '/'
                           },
+                  open => 1, # force this item's children to be displayed
                   children => [
                                { name => 'button_1_level_2',
                                  info => { text => "Child 1 of Button 1",
@@ -96,6 +97,17 @@ HTML::Menu::Hierarchical - HTML Hierarchical Menu Generator
     used for that menu item instead of the global callback passed
     to new().
 
+    An 'open' parameter can be specified to force an item's
+    children to be displayed.  This can be a scalar value that
+    indicates true or false.  Or it can be a subroutine reference
+    that returns a true or false value.  It can also be an array,
+    in which case the first element is expected to be an object,
+    the second element the name of a method to call on that
+    object, and the rest of the elements will be passed as
+    arguments to the method.  If an 'open_all' parameter is
+    passed, the current item and all items under it in the
+    hierarchy will be forced open.
+
 =head2 callback functions/methods
 
     Callback functions are passed a single parameter: an
@@ -113,7 +125,7 @@ use Carp;
 
     use vars qw($VERSION);
     BEGIN {
-        $VERSION = 0.05; # update below in POD as well
+        $VERSION = 0.06; # update below in POD as well
     }
 
     use HTML::Menu::Hierarchical::Item;
@@ -237,7 +249,7 @@ use Carp;
         $info_obj->setLevel($level);
         push @$list, $info_obj;
 
-        if ($info_obj->isOpen) {
+        if ($info_obj->isOpen and $info_obj->hasChildren) {
             foreach my $child (@{$item->getChildren}) {
                 my $l = $self->_generateOpenList($child, $key, $selected_path, $new_level,
                                                 $info_obj);
@@ -395,10 +407,6 @@ Provide a way to skip being selected, e.g., if a menu item is
 selected that contains no url to go to, default to the first of
 its children that contains to a url.
 
-=item Force open
-
-Provide a way to specify that all menu items are open.
-
 =item Last sibling
 
 Provide a way to tell if the current menu item is the last
@@ -428,6 +436,6 @@ of its siblings to be displayed.
 
 =head1 VERSION
 
-    0.05
+    0.06
 
 =cut

@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 21:34:34
 # Authors: Don
 # Change log:
-# $Id: ItemInfo.pm,v 1.15 2003/04/03 06:03:10 don Exp $
+# $Id: ItemInfo.pm,v 1.17 2003/04/09 04:43:33 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -40,7 +40,7 @@ use Carp;
 {   package HTML::Menu::Hierarchical::ItemInfo;
 
     use vars qw($VERSION $AUTOLOAD);
-    $VERSION = do { my @r=(q$Revision: 1.15 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
+    $VERSION = do { my @r=(q$Revision: 1.17 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
     
     sub new {
         my ($proto, $item, $selected_path, $key, $parent) = @_;
@@ -151,6 +151,66 @@ Returns the maximum level in the hierarchy to currently be displayed.
     }
     *get_max_displayed_level = \&getMaxDisplayedLevel;
 
+    sub _checkOpenAllFields {
+        my ($self) = @_;
+
+        if (exists($$self{_is_open_all})) {
+            return $$self{_is_open_all};
+        }
+
+        my ($is_set, $val) = $self->_checkOpenField('open_all', '_is_open_all');
+        if ($is_set) {
+            return ($is_set, $val);
+        }
+        my $parent = $self;
+        while ($parent = $parent->getParent) {
+            my ($is_set, $val) = $parent->_checkOpenField('open_all', '_is_open_all');
+            if ($is_set) {
+                $$self{_is_open_all} = $val;
+                return ($is_set, $val);
+            }
+        }
+
+        $$self{_is_open_all} = undef;
+
+        return (undef, undef);
+    }
+
+    sub _checkOpenField {
+        my ($self, $field, $attr) = @_;
+        if ($field eq '') {
+            $field = 'open';
+            $attr = '_is_open';
+        }
+
+        if (my $open = $self->getOtherField($field)) {
+            # simple case first
+            unless (ref($open)) {
+                $$self{$attr} = 1;
+                return (1, 1);
+            }
+        
+            # now allow for a subroutine reference
+            if (ref($open) eq 'CODE') {
+                my $rv = &$open();
+                $$self{$attr} = $rv;
+                return (1, $rv);
+            } elsif (ref($open) eq 'ARRAY') {
+                my ($obj, $func, @args) = @$open;
+                my $rv;
+                if (defined($obj)) {
+                    $rv = $obj->$func(@args);
+                } else {
+                    $rv = &$func(@args);
+                }
+                $$self{$attr} = $rv;
+                return (1, $rv);
+            }
+        }                       # end 'open' field check
+
+        return (undef, undef);
+    }
+
 =pod
 
 =head2 isOpen()
@@ -165,6 +225,12 @@ has child items and is also in the open path.  Return false otherwise.
             return $$self{_is_open};
         }
 
+        my ($is_set, $val) = $self->_checkOpenField;
+        return $val if $is_set;
+
+        ($is_set, $val) = $self->_checkOpenAllFields;
+        return $val if $is_set;
+        
         my $this_item = $self->getItem;
         unless ($this_item->hasChildren) {
             $$self{_is_open} = undef;
@@ -261,6 +327,8 @@ hash.
         return $self->getItem()->getOtherFields;
     }
 
+    # get field from configuration that is at the same level as
+    # the name and children fields
     sub getOtherField {
         my ($self, $field) = @_;
         my $fields = $self->_getOtherFields;
@@ -620,6 +688,6 @@ __END__
 
 =head1 VERSION
 
-$Id: ItemInfo.pm,v 1.15 2003/04/03 06:03:10 don Exp $
+$Id: ItemInfo.pm,v 1.17 2003/04/09 04:43:33 don Exp $
 
 =cut
