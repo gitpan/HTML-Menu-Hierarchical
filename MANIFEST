@@ -6,3 +6,4 @@ Hierarchical/Item.pm
 Hierarchical/ItemInfo.pm
 examples/simple.cgi
 examples/color.cgi
+t/00use.t

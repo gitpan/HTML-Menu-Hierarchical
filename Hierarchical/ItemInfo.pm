@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 21:34:34
 # Authors: Don
 # Change log:
-# $Id: ItemInfo.pm,v 1.10 2003/03/05 06:34:58 don Exp $
+# $Id: ItemInfo.pm,v 1.11 2003/03/06 06:26:15 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -37,7 +37,7 @@ use Carp;
 {   package HTML::Menu::Hierarchical::ItemInfo;
 
     use vars qw($VERSION);
-    $VERSION = do { my @r=(q$Revision: 1.10 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
+    $VERSION = do { my @r=(q$Revision: 1.11 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
     
     sub new {
         my ($proto, $item, $selected_path, $key) = @_;
@@ -174,6 +174,44 @@ has child items and is also in the open path.  Return false otherwise.
 
         $$self{_is_open} = undef;
         return undef;
+    }
+
+=pod
+
+=head2 isFirstDisplayed()
+
+Returns true if the current menu item is the first one to be
+displayed.
+
+=cut
+    # added for v0_02
+    sub isFirstDisplayed {
+        my ($self) = @_;
+        my $item = $self->getPreviousItem;
+        if ($item) {
+            return undef;
+        } else {
+            return 1;
+        }
+    }
+
+=pod
+
+=head2 isLastDisplayed()
+
+Returns true if the current menu item is the last to be
+displayed.
+
+=cut
+    # added for v0_02
+    sub isLastDisplayed {
+        my ($self) = @_;
+        my $item = $self->getNextItem;
+        if ($item) {
+            return undef;
+        } else {
+            return 1;
+        }
     }
 
 =pod
@@ -487,6 +525,6 @@ __END__
 
 =head1 VERSION
 
-$Id: ItemInfo.pm,v 1.10 2003/03/05 06:34:58 don Exp $
+$Id: ItemInfo.pm,v 1.11 2003/03/06 06:26:15 don Exp $
 
 =cut

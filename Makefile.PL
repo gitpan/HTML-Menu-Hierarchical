@@ -1,9 +1,9 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # Creation date: 2003-02-25 22:25:01
 # Authors: Don
 # Change log:
-# $Id: Makefile.PL,v 1.3 2003/02/28 15:41:13 don Exp $
+# $Id: Makefile.PL,v 1.4 2003/03/06 06:26:15 don Exp $
 
 use strict;
 use Carp;

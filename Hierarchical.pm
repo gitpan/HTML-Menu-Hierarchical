@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 20:35:53
 # Authors: Don
 # Change log:
-# $Id: Hierarchical.pm,v 1.14 2003/03/05 06:34:58 don Exp $
+# $Id: Hierarchical.pm,v 1.16 2003/03/06 06:26:15 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -105,7 +105,7 @@ use Carp;
 
     use vars qw($VERSION);
     BEGIN {
-        $VERSION = 0.01;
+        $VERSION = 0.02;
     }
 
     use HTML::Menu::Hierarchical::Item;
@@ -154,6 +154,31 @@ use Carp;
         return $str;
     }
 
+=pod
+
+=head2 addChildConf()
+
+    $menu_obj->addChildConf($conf, $menu_item_name);
+
+    Adds another configuration tree into the current
+    configuration at the specified node (name of the menu item).
+
+=cut
+    # added for v0_02
+    sub addChildConf {
+        my ($self, $conf, $menu_item) = @_;
+
+        return undef unless $conf;
+
+        my $selected_item = $self->getSelectedItem($menu_item);
+        return undef unless $selected_item;
+
+        my $converted_conf = $self->_convertConfig($conf);
+        $selected_item->setChildren($converted_conf);
+
+        return 1;
+    }
+    
     sub generateOpenList {
         my ($self, $key) = @_;
 
@@ -343,20 +368,20 @@ sub menu_callback {
 
 =over 4
 
-=item Menu inheritance - allow for adding subtrees to the
-navigation configuration by specifying a subtree and an item
-name.
 
-=item Provide a way to skip being selected, e.g., if a menu item
-is selected that contains no url to go to, default to the first
-of its children that contains to a url.
+=item Drop down to first url
 
-=item Provide a way to specify that all menu items are open.
+Provide a way to skip being selected, e.g., if a menu item is
+selected that contains no url to go to, default to the first of
+its children that contains to a url.
 
-=item Provide a way to tell if the current menu item is the first
-or last displayed item.
+=item Force open
 
-=item Provide a way to tell if the current menu item is the last
+Provide a way to specify that all menu items are open.
+
+=item Last sibling
+
+Provide a way to tell if the current menu item is the last
 of its siblings to be displayed.
 
 =back
@@ -383,6 +408,6 @@ of its siblings to be displayed.
 
 =head1 VERSION
 
-$Id: Hierarchical.pm,v 1.14 2003/03/05 06:34:58 don Exp $
+$Id: Hierarchical.pm,v 1.16 2003/03/06 06:26:15 don Exp $
 
 =cut
