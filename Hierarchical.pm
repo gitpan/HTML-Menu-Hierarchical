@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 20:35:53
 # Authors: Don
 # Change log:
-# $Id: Hierarchical.pm,v 1.19 2003/04/02 05:39:03 don Exp $
+# $Id: Hierarchical.pm,v 1.21 2003/04/03 06:03:09 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -64,37 +64,45 @@ HTML::Menu::Hierarchical - HTML Hierarchical Menu Generator
                 { name => 'top_button_2',
                   info => { text => 'Top Level Button 2',
                             url => '/top2.cgi'
-                          }
+                          },
+                  callback => [ $obj, 'my_callback' ]
                 },
                 
                ];
 
     In each hash, the 'name' parameter should correspond to the
-    $menu_item parameter passed to the generateMenu() method.  This is
-    how the module computes which menu item is selected.  This is
-    generally passed via a CGI parameter, which can be tacked onto the
-    end of the url in your callback function.  Note that this
-    parameter must be unique among all the array entries.  Otherwise,
-    the module will not be able to decide which menu item is selected.
+    $menu_item parameter passed to the generateMenu() method.
+    This is how the module computes which menu item is selected.
+    This is generally passed via a CGI parameter, which can be
+    tacked onto the end of the url in your callback function.
+    Note that this parameter must be unique among all the array
+    entries.  Otherwise, the module will not be able to decide
+    which menu item is selected.
 
-    The value of the 'info' parameter is available to your callback
-    function via the getInfo() method called on the
-    HTML::Menu::Hierarchical::ItemInfo object passed to the callback
-    function.  In the above example, the 'info' parameter contains
-    text to be displayed as the menu item, and a url the user is sent
-    to when clicking on the menu item.
+    The value of the 'info' parameter is available to your
+    callback function via the getInfo() method called on the
+    HTML::Menu::Hierarchical::ItemInfo object passed to the
+    callback function.  In the above example, the 'info'
+    parameter contains text to be displayed as the menu item, and
+    a url the user is sent to when clicking on the menu item.
 
     The 'children' parameter is a reference to another array
-    containing configuration information for child menu items.  This
-    is where the Hierarchical part comes in.  There is no limit to
-    depth of the hierarchy (until you run out of RAM, anyway).
+    containing configuration information for child menu items.
+    This is where the Hierarchical part comes in.  There is no
+    limit to depth of the hierarchy (until you run out of RAM,
+    anyway).
+
+    If a 'callback' parameter is specified that callback will be
+    used for that menu item instead of the global callback passed
+    to new().
 
 =head2 callback functions/methods
 
     Callback functions are passed a single parameter: an
-    HTML::Menu::Hierarchical::ItemInfo object.  See the documentation
-    on this object for available methods.  The callback function
-    should return the HTML necessary for the corresponding menu item.
+    HTML::Menu::Hierarchical::ItemInfo object.  See the
+    documentation on this object for available methods.  The
+    callback function should return the HTML necessary for the
+    corresponding menu item.
 
 =cut
 
@@ -105,7 +113,7 @@ use Carp;
 
     use vars qw($VERSION);
     BEGIN {
-        $VERSION = 0.04; # update below in POD as well
+        $VERSION = 0.05; # update below in POD as well
     }
 
     use HTML::Menu::Hierarchical::Item;
@@ -219,17 +227,20 @@ use Carp;
     }
 
     sub _generateOpenList {
-        my ($self, $item, $key, $selected_path, $level) = @_;
+        my ($self, $item, $key, $selected_path, $level, $parent) = @_;
         my $new_level = $level + 1;
         my $list = [];
 
-        my $info_obj = HTML::Menu::Hierarchical::ItemInfo->new($item, $selected_path, $key);
+        my $info_obj =
+            HTML::Menu::Hierarchical::ItemInfo->new($item, $selected_path, $key, $parent);
+        
         $info_obj->setLevel($level);
         push @$list, $info_obj;
 
         if ($info_obj->isOpen) {
             foreach my $child (@{$item->getChildren}) {
-                my $l = $self->_generateOpenList($child, $key, $selected_path, $new_level);
+                my $l = $self->_generateOpenList($child, $key, $selected_path, $new_level,
+                                                $info_obj);
                 push @$list, @$l;
             }
         }
@@ -241,7 +252,9 @@ use Carp;
         my ($self, $info_obj) = @_;
         
         my $str;
-        my $iterator = $self->getIterator;
+        my $iterator = $info_obj->getOtherField('callback');
+        $iterator = $self->getIterator unless $iterator;
+        
         if (ref($iterator) eq 'ARRAY') {
             my ($obj, $meth) = @$iterator;
             $str .= $obj->$meth($info_obj);
@@ -290,7 +303,8 @@ use Carp;
             if (my $new_conf = $$item{children}) {
                 $children = $self->_convertConfig($new_conf);
             }
-            my $item = HTML::Menu::Hierarchical::Item->new(@$item{'name', 'info'}, $children);
+            my $item = HTML::Menu::Hierarchical::Item->new(@$item{'name', 'info'}, $children,
+                                                          $item);
             push @$obj_array, $item;
         }
 
@@ -414,6 +428,6 @@ of its siblings to be displayed.
 
 =head1 VERSION
 
-    0.04
+    0.05
 
 =cut

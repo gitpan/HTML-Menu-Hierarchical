@@ -1,5 +1,6 @@
 MANIFEST
 README
+INSTALL
 Makefile.PL
 Hierarchical.pm
 Hierarchical/Item.pm

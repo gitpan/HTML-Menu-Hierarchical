@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 20:47:52
 # Authors: Don
 # Change log:
-# $Id: Item.pm,v 1.4 2003/02/26 06:22:39 don Exp $
+# $Id: Item.pm,v 1.5 2003/04/03 06:03:09 don Exp $
 #
 # Copyright (c) Don Owens
 #
@@ -16,14 +16,24 @@ use Carp;
 {   package HTML::Menu::Hierarchical::Item;
 
     use vars qw($VERSION);
-    $VERSION = do { my @r=(q$Revision: 1.4 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
+    $VERSION = do { my @r=(q$Revision: 1.5 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
 
     sub new {
-        my ($proto, $name, $info, $children) = @_;
+        my ($proto, $name, $info, $children, $item_hash) = @_;
         my $self = bless {}, ref($proto) || $proto;
         $self->setName($name);
         $self->setInfo($info);
         $self->setChildren($children);
+        
+        my $other_fields = {};
+        while (my ($field, $value) = each %$item_hash) {
+            if ($field eq 'name' or $field eq 'info' or $field eq 'children') {
+                next;
+            }
+            $$other_fields{$field} = $value;
+        }
+        $self->setOtherFields($other_fields);
+        
         return $self;
     }
 
@@ -69,6 +79,22 @@ use Carp;
         $$self{_children} = $children;
     }
 
+    sub getOtherFields {
+        my ($self) = @_;
+        return $$self{_other_fields};
+    }
+
+    sub setOtherFields {
+        my ($self, $hash) = @_;
+        $$self{_other_fields} = $hash;
+    }
+
+    sub getOtherField {
+        my ($self, $field) = @_;
+        my $fields = $self->getOtherFields;
+        return $$fields{$field};
+    }
+
 }
 
 1;
@@ -86,6 +112,6 @@ __END__
 
 =head1 Version
 
-$Id: Item.pm,v 1.4 2003/02/26 06:22:39 don Exp $
+$Id: Item.pm,v 1.5 2003/04/03 06:03:09 don Exp $
 
 =cut

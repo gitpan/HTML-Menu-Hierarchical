@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 21:34:34
 # Authors: Don
 # Change log:
-# $Id: ItemInfo.pm,v 1.13 2003/04/02 05:38:38 don Exp $
+# $Id: ItemInfo.pm,v 1.15 2003/04/03 06:03:10 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -40,14 +40,15 @@ use Carp;
 {   package HTML::Menu::Hierarchical::ItemInfo;
 
     use vars qw($VERSION $AUTOLOAD);
-    $VERSION = do { my @r=(q$Revision: 1.13 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
+    $VERSION = do { my @r=(q$Revision: 1.15 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
     
     sub new {
-        my ($proto, $item, $selected_path, $key) = @_;
+        my ($proto, $item, $selected_path, $key, $parent) = @_;
         my $self = bless {}, ref($proto) || $proto;
         $self->setItem($item);
         $self->setSelectedPath($selected_path);
         $self->setKey($key);
+        $self->setParent($parent);
         return $self;
     }
 
@@ -255,6 +256,17 @@ hash.
     }
     *get_info = \&getInfo;
 
+    sub _getOtherFields {
+        my ($self) = @_;
+        return $self->getItem()->getOtherFields;
+    }
+
+    sub getOtherField {
+        my ($self, $field) = @_;
+        my $fields = $self->_getOtherFields;
+        return $$fields{$field};
+    }
+
 =pod
 
 =head2 getName()
@@ -358,6 +370,24 @@ located.  Levels start at zero.
     sub setItem {
         my ($self, $item) = @_;
         $$self{_item} = $item;
+    }
+
+=pod
+
+=head2 getParent()
+
+Returns the info object for the current item's parent.
+
+=cut
+
+    sub getParent {
+        my ($self) = @_;
+        return $$self{_parent};
+    }
+
+    sub setParent {
+        my ($self, $parent) = @_;
+        $$self{_parent} = $parent;
     }
 
     ###########
@@ -590,6 +620,6 @@ __END__
 
 =head1 VERSION
 
-$Id: ItemInfo.pm,v 1.13 2003/04/02 05:38:38 don Exp $
+$Id: ItemInfo.pm,v 1.15 2003/04/03 06:03:10 don Exp $
 
 =cut

@@ -1,24 +1,297 @@
-HTML::Menu::Hierarchical
+NAME
+    HTML::Menu::Hierarchical - HTML Hierarchical Menu Generator
 
-Copyright (c) 2003 Don Owens
+SYNOPSIS
+        my $menu_obj = HTML::Menu::Hierarchical->new($conf, \&callback);
+        my $html = $menu_obj->generateMenu($menu_item);
 
-See the COPYRIGHT section in Hierarchical.pm for usage and
-distribution rights.
+        or
 
-HTML::Menu::Hierarchical is a Perl module for creating hierarchical
-HTML menus of arbitrary structure.
+        my $menu_obj = HTML::Menu::Hierarchical->new($conf, [ $obj, $method ]);
+        my $html = $menu_obj->generateMenu($menu_item);
 
-INSTALLATION
+        In the first case, the callback is a function.  In the second, the
+        callback is a method called on the given object.
 
-	perl Makefile.PL
-	make
-	make test
-	make install
+        The $conf parameter is a navigation configuration data structure
+        (described below).
 
-DOCUMENTATION
+DESCRIPTION
+        HTML::Menu::Hierarchical provides a way to easily
+        generate a hierarchical HTML menu without forcing a specific
+        layout.  All output is provided by your own callbacks (subroutine
+        refs) and your own navigation configuration.
 
-	There is documentation available in POD format for
-	HTML::Menu::Hierarchical and
-	HTML::Menu::Hierarchical::ItemInfo, e.g.
+  configuration data structure
+        A navigation configuration is a reference to an array whose
+        elements are hashrefs.  Each hash contains configuration
+        information for one menu item and its children, if any.  Consider
+        the following example:
 
-		perldoc HTML::Menu::Hierarchical
+        my $conf = [
+                    { name => 'top_button_1',
+                      info => { text => 'Top Level Button 1',
+                                url => '/'
+                              },
+                      children => [
+                                   { name => 'button_1_level_2',
+                                     info => { text => "Child 1 of Button 1",
+                                               url => '/child1.cgi'
+                                             },
+                                   },
+
+                                  ]
+                    },
+
+                    { name => 'top_button_2',
+                      info => { text => 'Top Level Button 2',
+                                url => '/top2.cgi'
+                              },
+                      callback => [ $obj, 'my_callback' ]
+                    },
+                
+                   ];
+
+        In each hash, the 'name' parameter should correspond to the
+        $menu_item parameter passed to the generateMenu() method.
+        This is how the module computes which menu item is selected.
+        This is generally passed via a CGI parameter, which can be
+        tacked onto the end of the url in your callback function.
+        Note that this parameter must be unique among all the array
+        entries.  Otherwise, the module will not be able to decide
+        which menu item is selected.
+
+        The value of the 'info' parameter is available to your
+        callback function via the getInfo() method called on the
+        HTML::Menu::Hierarchical::ItemInfo object passed to the
+        callback function.  In the above example, the 'info'
+        parameter contains text to be displayed as the menu item, and
+        a url the user is sent to when clicking on the menu item.
+
+        The 'children' parameter is a reference to another array
+        containing configuration information for child menu items.
+        This is where the Hierarchical part comes in.  There is no
+        limit to depth of the hierarchy (until you run out of RAM,
+        anyway).
+
+        If a 'callback' parameter is specified that callback will be
+        used for that menu item instead of the global callback passed
+        to new().
+
+  callback functions/methods
+        Callback functions are passed a single parameter: an
+        HTML::Menu::Hierarchical::ItemInfo object.  See the
+        documentation on this object for available methods.  The
+        callback function should return the HTML necessary for the
+        corresponding menu item.
+
+METHODS
+  new()
+        my $menu_obj = HTML::Menu::Hierarchical->new($conf, \&callback);
+
+  generateMenu()
+        my $html = $menu_obj->generateMenu($menu_item);
+
+        $menu_item is the 'name' parameter of the selected item,
+        typically passed as a CGI parameter.
+
+  addChildConf()
+        $menu_obj->addChildConf($conf, $menu_item_name);
+
+        Adds another configuration tree into the current
+        configuration at the specified node (name of the menu item).
+
+  There are also underscore_separated versions of these methods.
+        E.g., unescapeHtml($html) becomes unescape_html($html)
+
+EXAMPLES
+        See the scripts in the examples subdirectory for example usages.
+
+        See the documentation for HTML::Menu::Hierarchical::ItemInfo for
+        methods available via the $info_obj parameter passed to the
+        menu_callback function below.
+
+        sub menu_callback { my ($info_obj) = @_; my $info_hash =
+        $info_obj->getInfo; my $level = $info_obj->getLevel;
+
+            my $text = $$info_hash{text};
+            $text = '&nbsp;' if $text eq '';
+            my $item_arg = $info_obj->getName;
+
+            # Add a cgi parameter m_i to url so we know which menu
+            # item was chosen
+            my $url = $info_obj->addArgsToUrl($$info_hash{url},
+                                              { m_i => $item_arg });
+
+            my $dpy_text = $info_obj->isSelected ? "&lt;$text&gt" : $text;
+            my $spacer = '&nbsp;&nbsp;' x $level;
+            my $str = qq{<tr>\n};
+            $str .= qq{<td bgcolor="#cccc88"><a href="$url">};
+            $str .= $spacer . $dpy_text;
+            $str .= qq{</a></td>};
+            $str .= qq{</tr>\n};
+            return $str;
+        }
+
+TODO
+    Drop down to first url
+        Provide a way to skip being selected, e.g., if a menu item is
+        selected that contains no url to go to, default to the first of its
+        children that contains to a url.
+
+    Force open
+        Provide a way to specify that all menu items are open.
+
+    Last sibling
+        Provide a way to tell if the current menu item is the last of its
+        siblings to be displayed.
+
+BUGS
+        Please send bug reports/feature requests to don@owensnet.com.
+
+        There are currently no checks for loops in the configuration data
+        structure passed to the module.
+
+AUTHOR
+        Don Owens <don@owensnet.com>
+
+COPYRIGHT
+        Copyright (c) 2003 Don Owens
+
+        All rights reserved. This program is free software; you can
+        redistribute it and/or modify it under the same terms as Perl
+        itself.
+
+VERSION
+        0.05
+
+NAME
+    HTML::Menu::Hierarchical::ItemInfo - Used by HTML::Menu::Hierarchical.
+    Provides information about the menu item being processed.
+
+SYNOPSIS
+    Created by HTML::Menu::Hierarchical objects.
+
+DESCRIPTION
+    Information holder/gatherer representing one menu item.
+
+METHODS
+  Getting back information
+  hasChildren()
+    Returns true if the current item has child items in the configuration.
+    False otherwise.
+
+  isSelected()
+    Returns true if the current item is the selected one.
+
+  isInSelectedPath()
+    Returns true if the current item is in the path from the root of the
+    hierarchy to the selected item.
+
+  getSelectedItem()
+    Returns the ItemInfo object corresponding to the selected menu item.
+
+  getSelectedLevel()
+    Returns the level in the hierarchy where the selected menu item is
+    located. Levels start at zero.
+
+  getMaxDisplayedLevel()
+    Returns the maximum level in the hierarchy to currently be displayed.
+
+  isOpen()
+    Returns true if the current menu item is open, i.e., the current item
+    has child items and is also in the open path. Return false otherwise.
+
+  isFirstDisplayed()
+    Returns true if the current menu item is the first one to be displayed.
+
+  isLastDisplayed()
+    Returns true if the current menu item is the last to be displayed.
+
+  getInfo()
+    Returns the value of the 'info' field for the current menu item in the
+    navigation configuration.
+
+    Instead of getting the 'info' hash and then accessing a field within it,
+    you may call a method to get that field directly. This is implemented
+    with AUTOLOAD, so if you do something like
+
+        my $text = $info_obj->getText;
+        my $image_src = $info_obj->getImageSrc;
+
+            or
+
+        my $text = $info_obj->getText;
+        my $image_src = $info_obj->get_image_src;
+
+    you will be given back the corresponding values in the 'info' hash.
+
+  getName()
+    Returns the 'name' field for the current menu item in the navigation
+    configuration. This is used to determine which menu item has been
+    selected.
+
+  getNextItem()
+    Returns the ItemInfo object corresponding to the next displayed menu
+    item.
+
+  getPreviousItem()
+    Returns the ItemInfo object corrsponding to the previously displayed
+    menu item.
+
+  getLevel()
+    Returns the level in the menu hierarchy where the current menu item is
+    located. Levels start at zero.
+
+  getParent()
+    Returns the info object for the current item's parent.
+
+  Utilities
+  my $encoded = $info->urlEncode($plain_text)
+    URL encodes the given string. This does full url-encoding, so a space is
+    %20, not a '+'.
+
+  my $query = $info->urlEncodeVars($var_hash)
+    Takes a hash containing key/value pairs and returns a url-encoded query
+    string appropriate for adding to the end of a url. If a value is an
+    array, it is assumed to be a multivalued input field and is added to the
+    query string as such.
+
+  my $plain_text = $info->urlDecode($url_enc_str)
+    Decodes the given url-encoded string.
+
+  my $var_hash = $info->urlDecodeVars($url_enc_str)
+    Decodes the url-encoded query string and returns a hash contain
+    key/value pairs from the query string. If a field appears more than once
+    in the query string, it's value will be returned as a reference to an
+    array of values.
+
+  my $modified_url = $info->addArgsToUrl($url, $var_hash)
+    Takes the key/value pairs in $var_hash and tacks them onto the end of
+    $url as a query string.
+
+  my $html = $info->escapeHtml($text)
+    Escapes the given text so that it is not interpreted as HTML.
+
+  my $text = $info->unescapeHtml($html)
+    Unescape the escaped text.
+
+  There are also underscore_separated versions of these methods.
+        E.g., unescapeHtml($html) becomes unescape_html($html)
+
+BUGS
+        Please send bug reports/feature requests to don@owensnet.com.
+
+AUTHOR
+        Don Owens <don@owensnet.com>
+
+COPYRIGHT
+        Copyright (c) 2003 Don Owens
+
+        All rights reserved. This program is free software; you can
+        redistribute it and/or modify it under the same terms as Perl
+        itself.
+
+VERSION
+    $Id: README,v 1.4 2003/04/03 06:06:27 don Exp $
+
