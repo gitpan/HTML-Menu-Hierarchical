@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 21:34:34
 # Authors: Don
 # Change log:
-# $Id: ItemInfo.pm,v 1.26 2003/12/24 19:44:28 don Exp $
+# $Id: ItemInfo.pm,v 1.30 2005/06/16 15:03:00 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -40,7 +40,7 @@ use Carp;
 {   package HTML::Menu::Hierarchical::ItemInfo;
 
     use vars qw($VERSION $AUTOLOAD);
-    $VERSION = do { my @r=(q$Revision: 1.26 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
+    $VERSION = do { my @r=(q$Revision: 1.30 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
     
     sub new {
         my ($proto, $item, $selected_path, $key, $parent, $params) = @_;
@@ -121,6 +121,8 @@ use Carp;
         return $self->new($$selected_path[$last_index], $selected_path, $self->getKey);
     }
     *get_selected_item = \&getSelectedItem;
+    *getSelectedItemInfo = \&getSelectedItem;
+    *get_selected_item_info = \&getSelectedItem;
 
 =pod
 
@@ -157,6 +159,15 @@ use Carp;
     }
     *get_max_displayed_level = \&getMaxDisplayedLevel;
 
+    sub getStandardCallbackParams {
+        my ($self) = @_;
+        my $params = $self->_getParam('std_callback_params');
+        unless (ref($params) eq 'HASH') {
+            $params = {};
+        }
+        return $params;
+    }
+    
     sub _checkOpenAllFields {
         my ($self) = @_;
 
@@ -763,7 +774,9 @@ use Carp;
                 $str = lcfirst($str);
                 $str =~ s/([A-Z])/_\L$1/g;
 
-                return $self->getInfo()->{$str};                
+                my $info = $self->getInfo;
+                return $info->{$str} if $info;
+                return undef;
             } else {
                 return "invalid name";
             }
@@ -784,6 +797,11 @@ __END__
 
  E.g., unescapeHtml($html) becomes unescape_html($html)
 
+=head1 TODO
+
+ hasChildrenDisplayed() - tell whether or not the current item's
+                          children will be displayed
+
 =head1 BUGS
 
  Please send bug reports/feature requests to don@owensnet.com.
@@ -802,6 +820,6 @@ __END__
 
 =head1 VERSION
 
- $Id: ItemInfo.pm,v 1.26 2003/12/24 19:44:28 don Exp $
+ $Id: ItemInfo.pm,v 1.30 2005/06/16 15:03:00 don Exp $
 
 =cut

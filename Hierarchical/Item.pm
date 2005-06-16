@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 20:47:52
 # Authors: Don
 # Change log:
-# $Id: Item.pm,v 1.5 2003/04/03 06:03:09 don Exp $
+# $Id: Item.pm,v 1.6 2005/06/16 15:03:00 don Exp $
 #
 # Copyright (c) Don Owens
 #
@@ -16,7 +16,7 @@ use Carp;
 {   package HTML::Menu::Hierarchical::Item;
 
     use vars qw($VERSION);
-    $VERSION = do { my @r=(q$Revision: 1.5 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
+    $VERSION = do { my @r=(q$Revision: 1.6 $=~/\d+/g); sprintf "%d."."%02d"x$#r,@r };
 
     sub new {
         my ($proto, $name, $info, $children, $item_hash) = @_;
@@ -79,6 +79,27 @@ use Carp;
         $$self{_children} = $children;
     }
 
+    sub addChild {
+        my $self = shift;
+        my $child = shift;
+
+        return undef unless $child;
+        
+        my $children = $self->{_children};
+        unless ($children and UNIVERSAL::isa($children, 'ARRAY')) {
+            $children = [];
+            $self->{_children} = $children;
+        }
+
+        if (UNIVERSAL::isa($child, 'HASH')) {
+            push @$children, $child;
+        } elsif (UNIVERSAL::isa($child, 'ARRAY')) {
+            push @$children, @$child;
+        }
+
+        return 1;
+    }
+
     sub getOtherFields {
         my ($self) = @_;
         return $$self{_other_fields};
@@ -112,6 +133,6 @@ __END__
 
 =head1 Version
 
-$Id: Item.pm,v 1.5 2003/04/03 06:03:09 don Exp $
+$Id: Item.pm,v 1.6 2005/06/16 15:03:00 don Exp $
 
 =cut

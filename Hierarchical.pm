@@ -2,7 +2,7 @@
 # Creation date: 2003-01-05 20:35:53
 # Authors: Don
 # Change log:
-# $Id: Hierarchical.pm,v 1.38 2003/12/24 19:44:28 don Exp $
+# $Id: Hierarchical.pm,v 1.45 2005/06/16 15:31:03 don Exp $
 #
 # Copyright (c) 2003 Don Owens
 #
@@ -30,8 +30,18 @@
 
  my $html = $menu_obj->generateMenu($menu_item);
 
+ or
+
+ my $menu_obj =
+     HTML::Menu::Hierarchical->new($conf, $std_callback_name);
+
+ my $html = $menu_obj->generateMenu($menu_item);
+
  In the first case, the callback is a function.  In the second,
- the callback is a method called on the given object.
+ the callback is a method called on the given object.  In the
+ third example, the callback is the name of a standard callback
+ defined by HTML::Menu::Hierarchical itself (see the section on
+ callback functions/methods).
 
  The $conf parameter is a navigation configuration data structure
  (described below).
@@ -168,7 +178,7 @@ use Carp;
 
     use vars qw($VERSION);
     BEGIN {
-        $VERSION = '0.12'; # update below in POD as well
+        $VERSION = '0.13'; # update below in POD as well
     }
 
     use HTML::Menu::Hierarchical::Item;
@@ -258,12 +268,42 @@ use Carp;
 
 =pod
 
-=head2 getSelectedItem($menu_item)
+=head2 addChildConfToChildren($conf, $menu_item_name)
 
- Returns the ItemInfo object corresponding to the selected menu
- item.
+ Like addChildConf(), except add this conf to the list of
+ children of the parent with name $menu_item_name.  If $conf is
+ an array, each element of the array will be added to the list of
+ children.
 
 =cut
+    sub addChildConfToChildren {
+        my ($self, $conf, $menu_item) = @_;
+        
+        return undef unless $conf;
+
+        my $selected_item = $self->getSelectedItem($menu_item);
+        return undef unless $selected_item;
+
+        my $converted_conf;
+        if (UNIVERSAL::isa($conf, 'ARRAY')) {
+            $converted_conf = $self->_convertConfig($conf);
+        } else {
+            $converted_conf = $self->_convertConfig([ $conf ]);
+        }
+        $selected_item->addChild($converted_conf);
+
+        return 1;
+    }
+    *add_child_conf_to_children = \&addChildConfToChildren;
+
+# =pod
+
+# =head2 getSelectedItem($menu_item)
+
+#  Returns the Item object corresponding to the selected menu
+#  item.
+
+# =cut
     sub getSelectedItem {
         my ($self, $key) = @_;
         my $path = $self->findSelectedPath($self->getConfig, $key);
@@ -281,10 +321,27 @@ use Carp;
 
 =pod
 
+=head2 getSelectedItemInfo($menu_item)
+
+ Returns the ItemInfo object corresponding to the selected menu
+ item.
+
+=cut
+    sub getSelectedItemInfo {
+        my ($self, $key) = @_;
+        my $path = $self->getSelectedPath($key);
+        if (UNIVERSAL::isa($path, 'ARRAY') and @$path) {
+            return $path->[$#$path];
+        }
+    }
+    *get_selected_item_info = \&getSelectedItemInfo;
+
+=pod
+
 =head2 getSelectedPath($menu_item)
 
- Returns an array of InfoItem objects representing the from the
- top level menu item to the selected menu item.
+ Returns an array of InfoItem objects representing the path from
+ the top level menu item to the selected menu item.
 
 =cut
     # added for v0_09
@@ -301,6 +358,7 @@ use Carp;
         my @selected_path = map { $open_map{$_->getName} } @$item_path;
         return \@selected_path;
     }
+    *get_selected_path = \&getSelectedPath;
 
     sub generateOpenList {
         my ($self, $key) = @_;
@@ -358,6 +416,7 @@ use Carp;
         my $params = { top_menu_obj => $self,
                        old_style_url => $$hier_params{old_style_url},
                        new_style_url => $$hier_params{new_style_url},
+                       std_callback_params => $$hier_params{std_callback_params},
                      };
         my $info_obj = HTML::Menu::Hierarchical::ItemInfo->new($item, $selected_path, $key,
                                                                $parent, $params);
@@ -386,6 +445,10 @@ use Carp;
         if (ref($iterator) eq 'ARRAY') {
             my ($obj, $meth) = @$iterator;
             $str .= $obj->$meth($info_obj);
+        } elsif (not ref($iterator)) {
+            # string - use standard callback method
+            my $meth = "_stdCallback" . $iterator;
+            $str .= $self->$meth($info_obj);
         } else {
             $str .= $iterator->($info_obj);
         }
@@ -555,6 +618,201 @@ use Carp;
         return undef;
     }
 
+    sub _stdCallbackUl1 {
+        my ($self, $info_obj) = @_;
+
+        my $html = '';
+        my $level = $info_obj->getLevel;
+        my $text = $info_obj->getText;
+        my $name = $info_obj->getName;
+        my $info = $info_obj->getInfo;
+        
+        my $params = $info_obj->getStandardCallbackParams;
+        my $cgi_var_name = $$params{menu_item_param_name} || 'm_i';
+        
+        my $url = $info_obj->addArgsToUrl($info_obj->getUrl, { $cgi_var_name => $name });
+    
+        if ($level == 0 and $info_obj->isFirstDisplayed) {
+            my $style = qq{style="padding-left: 0em; margin-left: 1em"};
+            if (exists($$info{list_class})) {
+                $style = qq{class="$$info{list_class}"};
+            } elsif (exists($$params{list_class})) {
+                $style = qq{class="$$params{list_class}"};
+            }
+            $html .= qq{<ul $style>\n};
+        } elsif ($info_obj->isFirstSiblingDisplayed) { # new in version 0.12
+            my $style = qq{style="padding-left: 0em; margin-left: 1em"};
+            if (exists($$info{list_class})) {
+                $style = qq{class="$$info{list_class}"};
+            } elsif (exists($$params{list_class})) {
+                $style = qq{class="$$params{list_class}"};
+            }
+
+            $html .= "  " x ($level + 1);
+            $html .= qq{<ul $style>\n};
+        }
+
+        $html .= "  " x ($level == 0 ? $level + 1 : $level + 2);
+        $html .= qq{<li>\n};
+    
+        my $link_style = qq{style="text-decoration: none};
+        $link_style .= qq{; font-family: arial, helvetica, sans-serif};
+        $link_style .= qq{; font-size: 12pt; font-weight: bold; color: #626262"};
+
+        if (exists($$info{link_class})) {
+            $link_style = qq{class="$$info{link_class}"};
+        } elsif (exists($$params{link_class})) {
+            $link_style = qq{class="$$params{link_class}"};            
+        }
+    
+        $html .= "  " x ($level == 0 ? $level + 2 : $level + 3);
+        $html .= qq{<a $link_style href="$url">$text</a>\n};
+        unless ($info_obj->isOpen) {
+            $html .= "  " x ($level == 0 ? $level + 1 : $level + 2);
+            $html .= qq{</li>\n};
+        }
+
+        if ($info_obj->isLastSiblingDisplayed and not $info_obj->hasChildren) {
+            $html .= "  " x ($level + 1) unless $level == 0;
+            $html .= qq{</ul>\n};
+            $html .= "  " x ($level) . qq{</li>\n};
+        }
+        if ($info_obj->isLastDisplayed) {
+            $html .= "  " x ($level + 1) unless $level == 0;
+            $html .= qq{</ul>\n};
+        }
+
+        return $html;
+    }
+
+    sub _stdCallbackCiscoExt {
+        my ($self, $info_obj) = @_;
+
+        my $info = $info_obj->getInfo;
+        my $level = $info_obj->getLevel;
+        my $selected_level = $info_obj->getSelectedLevel;
+        my $params = $info_obj->getStandardCallbackParams;
+
+        my $name = $info_obj->getName;
+
+        my $image_uri = '';
+        
+        my $cgi_var_name = $$params{menu_item_param_name} || 'm_i';
+        my $url = $info_obj->addArgsToUrl($info_obj->getUrl, { $cgi_var_name => $name });
+
+        my $parent_bg_color = '#669999';
+        my $selected_bg_color = '#ffffff';
+        my $child_bg_color = '#cccccc';
+        my $peer_bg_color = '#999999';
+        my $architecture_bg_color = '#336666';
+        my $divider_color = '#003333';
+        
+        my $text_class = 'hinavparent';
+        my $text_color = '#ffffff';
+        my $text_bg_color = $parent_bg_color;
+
+        my $child_indent = 9;
+        my $indent = 0;
+
+        if ($level == $selected_level) {
+            $text_class = 'hinavpeer';
+            $text_color = '#000000';
+            if ($info_obj->isSelected) {
+                $text_bg_color = $selected_bg_color;
+            } elsif ($level == 1) {
+                $text_color = '#ffffff';
+                $text_bg_color = $parent_bg_color;
+            } else {
+                $text_bg_color = $peer_bg_color;
+            }
+        } elsif ($level < $selected_level) {
+            $text_class = 'hinavparent';
+            $text_color = '#ffffff';
+            if ($selected_level - $level == 1) {
+                $text_bg_color = $parent_bg_color;
+            } else {
+                $text_bg_color = $architecture_bg_color;
+            }
+        } else {
+            # $level > $selected_level
+            $text_class = 'hinavchild';
+            $text_color = '#000000';
+            $text_bg_color = $child_bg_color;
+        }
+        
+        if ($text_class eq 'hinavchild') {
+            $indent = $child_indent if $level > 1;
+        }
+        
+        if ($info_obj->isSelected) {
+            $text_bg_color = $selected_bg_color;
+            $text_color = '#000000';
+        }
+
+        my $text = '';
+        if ($text_class =~ /parent/) {
+            $text = $info_obj->escapeHtml(uc($$info{text}));
+        } else {
+            $text = $info_obj->escapeHtml($$info{text});
+        }
+
+        my $plus = $image_uri . 'hinav_l0plus.gif';
+        if ($level) {
+            if ($text_class =~ /parent/) {
+                $plus = $image_uri . 'hinav_plusrev.gif';
+            } else {
+                $plus = $image_uri . 'hinav_plus.gif';
+            }
+        }
+
+        my $spacer = $image_uri . 's.gif';
+        my $html = '';
+        if ($level == 0) {
+            $html .= qq{<tr>\n};
+            $html .= qq{<td bgcolor="$architecture_bg_color">};
+            $html .= qq{<img src="$spacer" border="0" height="15" width="17" /></td>};
+            $html .= qq{<td colspan="2" bgcolor="$architecture_bg_color">};
+            $html .= qq{<a href="$url" class="$text_class">$text</a></td>};
+            $html .= qq{<td bgcolor="$architecture_bg_color" valign="top">};
+            $html .= qq{<img src="$plus" border="0" /></td>\n};
+            $html .= qq{</tr\n};
+
+            $html .= qq{<tr>\n};
+            $html .= qq{<td colspan="4" bgcolor="$divider_color">};
+            $html .= qq{<img src="$spacer" border="0" /></td>};
+            $html .= qq{</tr>\n};
+            return $html;
+        }
+
+        my $left_image = $image_uri . 's.gif';
+
+        my $link = qq{<span class="$text_class"><a href="$url" class="$text_class">};
+        $link .= qq{<font color="$text_color">$text</a></span>};
+
+        $html .= qq{<tr>\n};
+        $html .= qq{<td bgcolor="$text_bg_color">};
+        $html .= qq{<img src="$left_image" border="0" height="15" width="17" /></td>};
+        $html .= qq{<td colspan="2" bgcolor="$text_bg_color">$link</td>};
+
+        $html .= qq{<td bgcolor="$text_bg_color">};
+
+        if ($info_obj->hasChildren and not $info_obj->isOpen) {
+            $html .= qq{<img src="$plus" border="0" />};
+        } else {
+            $html .= qq{&nbsp;};
+        }
+        
+        $html .= qq{</td>\n</tr>\n};
+
+        $html .= qq{<tr>\n};
+        $html .= qq{<td colspan="4" bgcolor="$divider_color">};
+        $html .= qq{<img src="$spacer" border="0" /></td>};
+        $html .= qq{</tr>\n};
+        
+        
+        return $html;
+    }
+
     # added for v0_09
     sub DESTROY {
         my ($self) = @_;
@@ -637,6 +895,6 @@ sub menu_callback {
 
 =head1 VERSION
 
- 0.12
+ 0.13
 
 =cut

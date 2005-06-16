@@ -14,8 +14,18 @@ SYNOPSIS
 
      my $html = $menu_obj->generateMenu($menu_item);
 
+     or
+
+     my $menu_obj =
+         HTML::Menu::Hierarchical->new($conf, $std_callback_name);
+
+     my $html = $menu_obj->generateMenu($menu_item);
+
      In the first case, the callback is a function.  In the second,
-     the callback is a method called on the given object.
+     the callback is a method called on the given object.  In the
+     third example, the callback is the name of a standard callback
+     defined by HTML::Menu::Hierarchical itself (see the section on
+     callback functions/methods).
 
      The $conf parameter is a navigation configuration data structure
      (described below).
@@ -146,13 +156,19 @@ METHODS
      Adds another configuration tree into the current configuration
      at the specified node (name of the menu item).
 
-  getSelectedItem($menu_item)
+  addChildConfToChildren($conf, $menu_item_name)
+     Like addChildConf(), except add this conf to the list of
+     children of the parent with name $menu_item_name.  If $conf is
+     an array, each element of the array will be added to the list of
+     children.
+
+  getSelectedItemInfo($menu_item)
      Returns the ItemInfo object corresponding to the selected menu
      item.
 
   getSelectedPath($menu_item)
-     Returns an array of InfoItem objects representing the from the
-     top level menu item to the selected menu item.
+     Returns an array of InfoItem objects representing the path from
+     the top level menu item to the selected menu item.
 
   There are also underscore_separated versions of these methods.
      E.g., unescapeHtml($html) becomes unescape_html($html)
@@ -203,7 +219,7 @@ COPYRIGHT
      itself.
 
 VERSION
-     0.12
+     0.13
 
 NAME
      HTML::Menu::Hierarchical::ItemInfo - Used by HTML::Menu::Hierarchical.
@@ -339,6 +355,10 @@ METHODS
   There are also underscore_separated versions of these methods.
      E.g., unescapeHtml($html) becomes unescape_html($html)
 
+TODO
+     hasChildrenDisplayed() - tell whether or not the current item's
+                              children will be displayed
+
 BUGS
      Please send bug reports/feature requests to don@owensnet.com.
 
@@ -353,5 +373,5 @@ COPYRIGHT
      itself.
 
 VERSION
-     $Id: README,v 1.13 2003/12/24 19:47:55 don Exp $
+     $Id: README,v 1.15 2005/06/16 15:31:06 don Exp $
 
